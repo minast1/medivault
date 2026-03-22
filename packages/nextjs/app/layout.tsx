@@ -1,4 +1,4 @@
-import "@rainbow-me/rainbowkit/styles.css";
+import { headers } from "next/headers";
 import "@scaffold-ui/components/styles.css";
 import { ScaffoldEthAppWithProviders } from "~~/components/ScaffoldEthAppWithProviders";
 import { ThemeProvider } from "~~/components/ThemeProvider";
@@ -10,12 +10,14 @@ export const metadata = getMetadata({
   description: "Built with 🏗 Scaffold-ETH 2",
 });
 
-const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
+const ScaffoldEthApp = async ({ children }: { children: React.ReactNode }) => {
+  const headersObj = await headers();
+  const cookies = headersObj.get("cookie");
   return (
     <html suppressHydrationWarning className={``}>
       <body>
         <ThemeProvider enableSystem>
-          <ScaffoldEthAppWithProviders>{children}</ScaffoldEthAppWithProviders>
+          <ScaffoldEthAppWithProviders cookies={cookies}>{children}</ScaffoldEthAppWithProviders>
         </ThemeProvider>
       </body>
     </html>

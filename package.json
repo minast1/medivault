@@ -62,5 +62,16 @@
   "packageManager": "yarn@3.2.3",
   "engines": {
     "node": ">=20.18.3"
+  },
+  "resolutions": {
+    "lit": "3.2.1",
+    "lit-html": "3.2.1",
+    "lit-element": "4.1.1",
+    "@reown/appkit": "1.8.19",
+    "@reown/appkit-adapter-wagmi": "1.8.19",
+    "@reown/appkit-common": "1.8.19",
+    "@reown/appkit-core": "1.8.19",
+    "@reown/appkit-ui": "1.8.19",
+    "@reown/appkit-scaffold-ui": "1.8.19"
   }
 }
