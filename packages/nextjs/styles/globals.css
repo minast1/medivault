@@ -1,123 +1,254 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+/*
+  ---break---
+*/
 
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+@theme inline {
+  /* Core Colors */
+  --color-background: oklch(0.97 0.01 220);
+  --color-foreground: oklch(0.25 0.05 222);
 
-@theme {
-  --shadow-center: 0 0 12px -2px rgb(0 0 0 / 0.05);
-  --animate-pulse-fast: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.25 0.05 222);
 
-@plugin "daisyui" {
-  themes:
-    light,
-    dark --prefersdark;
-}
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.25 0.05 222);
 
-@plugin "daisyui/theme" {
-  name: "light";
+  --color-primary: oklch(0.28 0.08 235);
+  --color-primary-foreground: oklch(0.98 0.01 210);
 
-  --color-primary: #93bbfb;
-  --color-primary-content: #212638;
-  --color-secondary: #dae8ff;
-  --color-secondary-content: #212638;
-  --color-accent: #93bbfb;
-  --color-accent-content: #212638;
-  --color-neutral: #212638;
-  --color-neutral-content: #ffffff;
-  --color-base-100: #ffffff;
-  --color-base-200: #f4f8ff;
-  --color-base-300: #dae8ff;
-  --color-base-content: #212638;
-  --color-info: #93bbfb;
-  --color-success: #34eeb6;
-  --color-warning: #ffcf72;
-  --color-error: #ff8863;
+  --color-secondary: oklch(0.53 0.16 170);
+  --color-secondary-foreground: oklch(1 0 0);
 
-  --radius-field: 9999rem;
-  --radius-box: 1rem;
-  --tt-tailw: 6px;
-}
+  --color-muted: oklch(0.94 0.01 220);
+  --color-muted-foreground: oklch(0.55 0.02 220);
 
-@plugin "daisyui/theme" {
-  name: "dark";
+  --color-accent: oklch(0.92 0.01 220);
+  --color-accent-foreground: oklch(0.25 0.05 222);
 
-  --color-primary: #212638;
-  --color-primary-content: #f9fbff;
-  --color-secondary: #323f61;
-  --color-secondary-content: #f9fbff;
-  --color-accent: #4969a6;
-  --color-accent-content: #f9fbff;
-  --color-neutral: #f9fbff;
-  --color-neutral-content: #385183;
-  --color-base-100: #385183;
-  --color-base-200: #2a3655;
-  --color-base-300: #212638;
-  --color-base-content: #f9fbff;
-  --color-info: #385183;
-  --color-success: #34eeb6;
-  --color-warning: #ffcf72;
-  --color-error: #ff8863;
+  --color-destructive: oklch(0.63 0.19 25);
+  --color-destructive-foreground: oklch(1 0 0);
 
-  --radius-field: 9999rem;
-  --radius-box: 1rem;
+  --color-border: oklch(0.9 0.01 220);
+  --color-input: oklch(0.9 0.01 220);
+  --color-ring: oklch(0.28 0.08 235);
 
-  --tt-tailw: 6px;
-  --tt-bg: var(--color-primary);
+  --radius-xl: 0.625rem;
+
+  /* Sidebar Tokens */
+  --color-sidebar-background: oklch(0.97 0.01 220);
+  --color-sidebar-foreground: oklch(0.25 0.05 222);
+  --color-sidebar-primary: oklch(0.28 0.08 235);
+  --color-sidebar-primary-foreground: oklch(0.98 0.01 210);
+  --color-sidebar-accent: oklch(0.92 0.01 220);
+  --color-sidebar-accent-foreground: oklch(0.25 0.05 222);
+  --color-sidebar-border: oklch(0.9 0.01 220);
+  --color-sidebar-ring: oklch(0.28 0.08 235);
+
+  /* Custom Tokens */
+  --color-surface-elevated: oklch(1 0 0);
+  --color-surface-sunken: oklch(0.95 0.01 220);
+  --color-success: oklch(0.53 0.16 170);
+  --color-success-foreground: oklch(1 0 0);
+  --color-warning: oklch(0.77 0.17 70);
+  --color-warning-foreground: oklch(1 0 0);
+  --color-info: oklch(0.28 0.08 235);
+  --color-info-foreground: oklch(0.98 0.01 210);
+  --color-teal: oklch(0.53 0.16 170);
+  --color-teal-foreground: oklch(1 0 0);
+  --color-teal-light: oklch(0.94 0.03 170);
+  --color-blue-light: oklch(0.95 0.02 225);
+  --color-navy: oklch(0.28 0.08 235);
+  --color-navy-light: oklch(0.93 0.03 230);
 }
 
 /*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
+  ---break---
 */
-@layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
-  }
 
-  p {
-    margin: 1rem 0;
+:root {
+  --background: 220 14% 96%;
+  --foreground: 222 28% 10%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 28% 10%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 28% 10%;
+
+  --primary: 222 47% 20%;
+  --primary-foreground: 210 20% 98%;
+
+  --secondary: 160 84% 29%;
+  --secondary-foreground: 0 0% 100%;
+
+  --muted: 220 14% 93%;
+  --muted-foreground: 220 9% 46%;
+
+  --accent: 220 14% 90%;
+  --accent-foreground: 222 28% 10%;
+
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 220 13% 88%;
+  --input: 220 13% 88%;
+  --ring: 222 47% 20%;
+
+  --radius: 0.625rem;
+
+  --sidebar-background: 220 14% 96%;
+  --sidebar-foreground: 222 28% 10%;
+  --sidebar-primary: 222 47% 20%;
+  --sidebar-primary-foreground: 210 20% 98%;
+  --sidebar-accent: 220 14% 90%;
+  --sidebar-accent-foreground: 222 28% 10%;
+  --sidebar-border: 220 13% 88%;
+  --sidebar-ring: 222 47% 20%;
+
+  /* Custom tokens */
+  --surface-elevated: 0 0% 100%;
+  --surface-sunken: 220 14% 94%;
+  --success: 160 84% 29%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 100%;
+  --info: 222 47% 20%;
+  --info-foreground: 210 20% 98%;
+  --teal: 160 84% 29%;
+  --teal-foreground: 0 0% 100%;
+  --teal-light: 158 40% 93%;
+  --blue-light: 222 35% 94%;
+  --navy: 222 47% 20%;
+  --navy-light: 222 30% 92%;
+}
+
+/*
+  ---break---
+*/
+
+.dark {
+  --background: 220 14% 96%;
+  --foreground: 222 28% 10%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 28% 10%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 28% 10%;
+
+  --primary: 222 47% 20%;
+  --primary-foreground: 210 20% 98%;
+
+  --secondary: 160 84% 29%;
+  --secondary-foreground: 0 0% 100%;
+
+  --muted: 220 14% 93%;
+  --muted-foreground: 220 9% 46%;
+
+  --accent: 220 14% 90%;
+  --accent-foreground: 222 28% 10%;
+
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 220 13% 88%;
+  --input: 220 13% 88%;
+  --ring: 222 47% 20%;
+
+  --radius: 0.625rem;
+
+  --sidebar-background: 220 14% 96%;
+  --sidebar-foreground: 222 28% 10%;
+  --sidebar-primary: 222 47% 20%;
+  --sidebar-primary-foreground: 210 20% 98%;
+  --sidebar-accent: 220 14% 90%;
+  --sidebar-accent-foreground: 222 28% 10%;
+  --sidebar-border: 220 13% 88%;
+  --sidebar-ring: 222 47% 20%;
+
+  /* Custom tokens */
+  --surface-elevated: 0 0% 100%;
+  --surface-sunken: 220 14% 94%;
+  --success: 160 84% 29%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 100%;
+  --info: 222 47% 20%;
+  --info-foreground: 210 20% 98%;
+  --teal: 160 84% 29%;
+  --teal-foreground: 0 0% 100%;
+  --teal-light: 158 40% 93%;
+  --blue-light: 222 35% 94%;
+  --navy: 222 47% 20%;
+  --navy-light: 222 30% 92%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
   }
 
   body {
-    min-height: 100vh;
+    @apply bg-background text-foreground antialiased;
+    font-family:
+      "Inter",
+      system-ui,
+      -apple-system,
+      sans-serif;
   }
 
   h1,
   h2,
   h3,
-  h4 {
-    margin-bottom: 0.5rem;
-    line-height: 1;
+  h4,
+  h5,
+  h6 {
+    @apply tracking-tight;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 }
 
-:root,
-[data-theme] {
-  background: var(--color-base-200);
+@layer components {
+  .vault-surface {
+    background: hsl(var(--primary));
+  }
+
+  .vault-surface-light {
+    background: hsl(222 30% 92%);
+  }
+
+  .stat-card-shadow {
+    box-shadow:
+      0 1px 3px hsla(222, 28%, 10%, 0.05),
+      0 4px 12px hsla(222, 28%, 10%, 0.03);
+  }
+
+  .stat-card-shadow-hover {
+    box-shadow:
+      0 2px 8px hsla(222, 28%, 10%, 0.07),
+      0 8px 24px hsla(222, 28%, 10%, 0.05);
+  }
+
+  .encrypted-blur {
+    filter: blur(8px);
+    user-select: none;
+  }
+
+  .decrypted-clear {
+    filter: blur(0px);
+  }
 }
 
-.btn {
-  @apply shadow-md;
-}
-
-.btn.btn-ghost {
-  @apply shadow-none;
-}
-
-.link {
-  text-underline-offset: 2px;
-}
-
-.link:hover {
-  opacity: 80%;
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
 }
