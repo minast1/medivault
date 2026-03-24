@@ -20,7 +20,13 @@ contract MediVault {
         string description,
         uint256 timestamp
     );
-    event DoctorRegistered(address indexed doctor);
+    event DoctorRegistered(
+        string name,
+        address indexed doctor,
+        string institution,
+        string department
+    );
+    event PatientRegistered(string name, address indexed patient);
     event AccessGranted(
         address indexed patient,
         address indexed doctor,
@@ -36,10 +42,19 @@ contract MediVault {
     /**
      * @notice Registers a professional doctor account.
      */
-    function registerDoctor() external {
+    function registerDoctor(
+        string calldata _name,
+        string calldata _institution,
+        string calldata _department
+    ) external {
         isRegisteredDoctor[msg.sender] = true;
-        emit DoctorRegistered(msg.sender);
+        emit DoctorRegistered(_name, msg.sender, _institution, _department);
     }
+
+    /**
+     * @notice Registers a patient account.
+     */
+    function registerPatient(string calldata _name) external {}
 
     /**
      * @notice Adds a new medical record for a patient.
