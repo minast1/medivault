@@ -1,6 +1,7 @@
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
-import { AppKitNetwork, baseSepolia, foundry, hardhat, mainnet, sepolia } from "@reown/appkit/networks";
+import { type AppKitNetwork } from "@reown/appkit/networks";
 import { Chain } from "viem";
+import { mainnet } from "viem/chains";
 import { cookieStorage, createStorage } from "wagmi";
 import scaffoldConfig from "~~/scaffold.config";
 
@@ -15,7 +16,9 @@ if (!projectId) {
 export const enabledChains = targetNetworks.find((network: Chain) => network.id === 1)
   ? targetNetworks
   : ([...targetNetworks, mainnet] as const);
-export const networks: [AppKitNetwork, ...AppKitNetwork[]] = [mainnet, hardhat, foundry, sepolia, baseSepolia];
+
+export const networks: [AppKitNetwork, ...AppKitNetwork[]] = [...enabledChains] as [AppKitNetwork, ...AppKitNetwork[]];
+//export const networks: [AppKitNetwork, ...AppKitNetwork[]] = [mainnet, hardhat, foundry, sepolia, baseSepolia];
 export const wagmiAdapter = new WagmiAdapter({
   storage: createStorage({
     storage: cookieStorage,
