@@ -5540,6 +5540,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@reown/appkit-wallet-button@npm:^1.8.19":
+  version: 1.8.19
+  resolution: "@reown/appkit-wallet-button@npm:1.8.19"
+  dependencies:
+    "@lit/react": 1.0.8
+    "@reown/appkit-common": 1.8.19
+    "@reown/appkit-controllers": 1.8.19
+    "@reown/appkit-ui": 1.8.19
+    "@reown/appkit-utils": 1.8.19
+    "@walletconnect/universal-provider": 2.23.7
+    lit: 3.3.0
+    valtio: 2.1.7
+  dependenciesMeta:
+    "@lit/react":
+      optional: true
+  checksum: ea467aba7f682aef0ed506808f02e6e27767379acea410236a65f36933c8b0e138460ce195c2d2800f7524a709214e2b7675070ea3d88cafac15485b60023b97
+  languageName: node
+  linkType: hard
+
 "@reown/appkit-wallet@npm:1.8.19":
   version: 1.8.19
   resolution: "@reown/appkit-wallet@npm:1.8.19"
@@ -5959,6 +5978,7 @@ __metadata:
     "@react-native-async-storage/async-storage": ~2.2.0
     "@reown/appkit": ^1.8.19
     "@reown/appkit-adapter-wagmi": ^1.8.19
+    "@reown/appkit-wallet-button": ^1.8.19
     "@scaffold-ui/components": ^0.1.8
     "@scaffold-ui/debug-contracts": ^0.1.7
     "@scaffold-ui/hooks": ^0.1.6
@@ -5979,6 +5999,7 @@ __metadata:
     eslint-config-next: ~15.2.3
     eslint-config-prettier: ~10.1.1
     eslint-plugin-prettier: ~5.2.4
+    framer-motion: ^12.38.0
     graphql: ^16.9.0
     graphql-request: ^7.1.0
     kubo-rpc-client: ~5.0.2
@@ -12880,6 +12901,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"framer-motion@npm:^12.38.0":
+  version: 12.38.0
+  resolution: "framer-motion@npm:12.38.0"
+  dependencies:
+    motion-dom: ^12.38.0
+    motion-utils: ^12.36.0
+    tslib: ^2.4.0
+  peerDependencies:
+    "@emotion/is-prop-valid": "*"
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@emotion/is-prop-valid":
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 3c1dfa3258957061e35b8ae99ac2abe90ddc346c079fecaf3316d7180c4bee7674aa736cc167af32089f98f9d2dcf7e23e8de2c7df7bb397a2253d14441a901f
+  languageName: node
+  linkType: hard
+
 "fresh@npm:^2.0.0":
   version: 2.0.0
   resolution: "fresh@npm:2.0.0"
@@ -16003,6 +16046,22 @@ __metadata:
   version: 1.1.0
   resolution: "modern-ahocorasick@npm:1.1.0"
   checksum: 78b99840c9af086c1e36a594ee85bebd8c19d48e2ef31a67d1bad0e673ac12fc931e5961abb5b16daaf820af4923e700f76b1793b7413e18782230162866a0af
+  languageName: node
+  linkType: hard
+
+"motion-dom@npm:^12.38.0":
+  version: 12.38.0
+  resolution: "motion-dom@npm:12.38.0"
+  dependencies:
+    motion-utils: ^12.36.0
+  checksum: 6841612e5f620b500181129b864ff184949ab15c066b12df3e9939e48796b91ec4622994c24d64112c7ab84dbc3df7657fbd2707195d9b18decca1bf50217473
+  languageName: node
+  linkType: hard
+
+"motion-utils@npm:^12.36.0":
+  version: 12.36.0
+  resolution: "motion-utils@npm:12.36.0"
+  checksum: 61b61425101402ab879b7b4cdf9c940009937e18005ce7a52a3b679bde9c73594802188bc14d2b9d2885a6f70015a2cf9173f3f1c8da2a63bf4edaa503a143f1
   languageName: node
   linkType: hard
 

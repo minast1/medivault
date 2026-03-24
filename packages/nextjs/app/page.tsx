@@ -1,79 +1,160 @@
 "use client";
 
-import Link from "next/link";
-import { Address } from "@scaffold-ui/components";
+import { useState } from "react";
+//import { useRouter } from "next/navigation";
+//import { useAppKitWallet } from "@reown/appkit-wallet-button/react";
+import { motion } from "framer-motion";
+import { ArrowRight, FileCheck, Lock, Shield } from "lucide-react";
 import type { NextPage } from "next";
-import { hardhat } from "viem/chains";
-import { useAccount } from "wagmi";
-import { BugAntIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { useTargetNetwork } from "~~/hooks/scaffold-eth";
+import IdentityOverlay from "~~/components/IdentityOverlay";
+import LoginModal from "~~/components/modals/login-modal";
+import { Button } from "~~/components/ui/button";
 
+//type AppView = "landing" | "patient" | "doctor";
+
+const features = [
+  {
+    icon: Shield,
+    title: "Sovereign Ownership",
+    desc: "Your records belong to you — always encrypted, always private.",
+  },
+  { icon: Lock, title: "Consent-Based Sharing", desc: "Share with providers on your terms. Revoke access anytime." },
+  { icon: FileCheck, title: "Tamper-Proof Vault", desc: "Every record is cryptographically verified and auditable." },
+];
 const Home: NextPage = () => {
-  const { address: connectedAddress } = useAccount();
-  const { targetNetwork } = useTargetNetwork();
+  //const router = useRouter();
+  const [loginRole, setLoginRole] = useState<"patient" | "doctor">("patient");
 
+  // const [view, setView] = useState<AppView>("landing");
+  // const [authId, setAuthId] = useState<"google"| "email">("email");
+
+  const [loginOpen, setLoginOpen] = useState(false);
+  //const [showOverlay, setShowOverlay] = useState(false);
+
+  const handleLoginClick = (role: "patient" | "doctor") => {
+    setLoginRole(role);
+
+    setLoginOpen(true);
+  };
+
+  const handleLoginSelect = (id: "google" | "email") => {
+    setLoginOpen(false);
+    if (id === "google") {
+      //connect("google");
+      return;
+    } else {
+      // connect("email");
+      return;
+    }
+
+    //setShowOverlay(true);
+  };
+
+  // const handleOverlayComplete = useCallback(() => {
+  //   setShowOverlay(false);
+  //   setView(loginRole);
+  // }, [loginRole]);
+
+  // if (view === 'patient') {
+  //   return <PatientDashboard onSwitchToDoctor={() => setView('doctor')} onLogout={() => setView('landing')} />;
+  // }
+
+  // if (view === 'doctor') {
+  //   return <DoctorDashboard onSwitchToPatient={() => setView('patient')} onLogout={() => setView('landing')} />;
+  // }
   return (
     <>
-      <div className="flex items-center flex-col grow pt-10">
-        <div className="px-5">
-          <h1 className="text-center">
-            <span className="block text-2xl mb-2">Welcome to</span>
-            <span className="block text-4xl font-bold">Scaffold-ETH 2</span>
+      <motion.header
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full px-6 py-4 flex items-center justify-between max-w-6xl mx-auto"
+      >
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+            <Shield className="w-4 h-4 text-primary-foreground" />
+          </div>
+          <span className="font-semibold text-lg tracking-tight">MediVault</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleLoginClick("doctor")}
+            className="text-muted-foreground"
+          >
+            Provider Login
+          </Button>
+          <Button size="sm" onClick={() => handleLoginClick("patient")}>
+            Secure Login
+          </Button>
+        </div>
+      </motion.header>
+
+      <section className="flex-1 flex flex-col items-center justify-center px-6 pb-24">
+        <motion.div
+          initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+          className="text-center max-w-2xl"
+        >
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-light text-secondary text-sm font-medium mb-6">
+            <Lock className="w-3.5 h-3.5" />
+            End-to-end encrypted health records
+          </div>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-[1.08] mb-5">
+            Your health data,
+            <br />
+            <span className="text-secondary">your sovereign vault.</span>
           </h1>
-          <div className="flex justify-center items-center space-x-2 flex-col">
-            <p className="my-2 font-medium">Connected Address:</p>
-            <Address
-              address={connectedAddress}
-              chain={targetNetwork}
-              blockExplorerAddressLink={
-                targetNetwork.id === hardhat.id ? `/blockexplorer/address/${connectedAddress}` : undefined
-              }
-            />
-          </div>
-
-          <p className="text-center text-lg">
-            Get started by editing{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              packages/nextjs/app/page.tsx
-            </code>
+          <p className="text-muted-foreground text-lg sm:text-xl leading-relaxed max-w-xl mx-auto mb-8">
+            Store, encrypt, and share medical records with doctors — on your terms. No intermediaries. No data brokers.
+            Just you.
           </p>
-          <p className="text-center text-lg">
-            Edit your smart contract{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              YourContract.sol
-            </code>{" "}
-            in{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              packages/hardhat/contracts
-            </code>
-          </p>
-        </div>
-
-        <div className="grow bg-base-300 w-full mt-16 px-8 py-12">
-          <div className="flex justify-center items-center gap-12 flex-col md:flex-row">
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <BugAntIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Tinker with your smart contract using the{" "}
-                <Link href="/debug" passHref className="link">
-                  Debug Contracts
-                </Link>{" "}
-                tab.
-              </p>
-            </div>
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <MagnifyingGlassIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Explore your local transactions with the{" "}
-                <Link href="/blockexplorer" passHref className="link">
-                  Block Explorer
-                </Link>{" "}
-                tab.
-              </p>
-            </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Button
+              size="lg"
+              //onClick={() => onLogin('patient')}
+              className="gap-2 px-6"
+            >
+              Open Your Vault
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              // onClick={() => onLogin('doctor')}
+            >
+              I&apos;m a Provider
+            </Button>
           </div>
+        </motion.div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-20 max-w-4xl w-full">
+          {features.map((f, i) => (
+            <motion.div
+              key={f.title}
+              initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.3 + i * 0.1 }}
+              className="bg-card rounded-xl p-6 stat-card-shadow"
+            >
+              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center mb-4">
+                <f.icon className="w-5 h-5 text-primary" />
+              </div>
+              <h3 className="font-semibold mb-1.5">{f.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+            </motion.div>
+          ))}
         </div>
-      </div>
+        <LoginModal
+          open={loginOpen}
+          onClose={() => setLoginOpen(false)}
+          onSelect={() => handleLoginSelect}
+          role={loginRole}
+        />
+        <IdentityOverlay visible={true} />
+      </section>
     </>
   );
 };

@@ -16,5 +16,6 @@ createAppKit({
   metadata: metadata,
   features: {
     analytics: true, // Optional - defaults to your Cloud configuration
+    socials: ["google"],
   },
 });
