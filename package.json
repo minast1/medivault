@@ -48,7 +48,7 @@
     "ponder:start": "yarn workspace @se-2/ponder start",
     "ponder:typecheck": "yarn workspace @se-2/ponder typecheck",
     "precommit": "lint-staged",
-    "start": "NODE_OPTIONS='--max-old-space-size=5120 --expose-gc' yarn workspace @se-2/nextjs dev",
+    "start": "yarn workspace @se-2/nextjs dev",
     "test": "yarn foundry:test",
     "vercel": "yarn workspace @se-2/nextjs vercel",
     "vercel:login": "yarn workspace @se-2/nextjs vercel:login",

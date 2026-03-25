@@ -6,54 +6,75 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
 const deployedContracts = {
   31337: {
-    YourContract: {
+    MediVault: {
       address: "0x700b6a60ce7eaaea56f065753d8dcb9653dbad35",
       abi: [
         {
-          type: "constructor",
+          type: "function",
+          name: "addRecord",
           inputs: [
             {
-              name: "_owner",
-              type: "address",
-              internalType: "address",
+              name: "ipfsCID",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "description",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "timestamp",
+              type: "uint256",
+              internalType: "uint256",
             },
           ],
+          outputs: [],
           stateMutability: "nonpayable",
         },
         {
-          type: "receive",
-          stateMutability: "payable",
+          type: "function",
+          name: "grantAccess",
+          inputs: [
+            {
+              name: "doctor",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "ipfsCID",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "duration",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
         },
         {
           type: "function",
-          name: "greeting",
-          inputs: [],
-          outputs: [
+          name: "hasAccess",
+          inputs: [
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "",
+              type: "address",
+              internalType: "address",
+            },
             {
               name: "",
               type: "string",
               internalType: "string",
             },
           ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "owner",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "address",
-              internalType: "address",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "premium",
-          inputs: [],
           outputs: [
             {
               name: "",
@@ -65,33 +86,7 @@ const deployedContracts = {
         },
         {
           type: "function",
-          name: "setGreeting",
-          inputs: [
-            {
-              name: "_newGreeting",
-              type: "string",
-              internalType: "string",
-            },
-          ],
-          outputs: [],
-          stateMutability: "payable",
-        },
-        {
-          type: "function",
-          name: "totalCounter",
-          inputs: [],
-          outputs: [
-            {
-              name: "",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-          stateMutability: "view",
-        },
-        {
-          type: "function",
-          name: "userGreetingCounter",
+          name: "isRegisteredDoctor",
           inputs: [
             {
               name: "",
@@ -102,43 +97,196 @@ const deployedContracts = {
           outputs: [
             {
               name: "",
-              type: "uint256",
-              internalType: "uint256",
+              type: "bool",
+              internalType: "bool",
             },
           ],
           stateMutability: "view",
         },
         {
           type: "function",
-          name: "withdraw",
-          inputs: [],
+          name: "registerDoctor",
+          inputs: [
+            {
+              name: "_name",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_institution",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "_department",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "registerPatient",
+          inputs: [
+            {
+              name: "_name",
+              type: "string",
+              internalType: "string",
+            },
+          ],
+          outputs: [],
+          stateMutability: "nonpayable",
+        },
+        {
+          type: "function",
+          name: "revokeAccess",
+          inputs: [
+            {
+              name: "doctor",
+              type: "address",
+              internalType: "address",
+            },
+            {
+              name: "ipfsCID",
+              type: "string",
+              internalType: "string",
+            },
+          ],
           outputs: [],
           stateMutability: "nonpayable",
         },
         {
           type: "event",
-          name: "GreetingChange",
+          name: "AccessGranted",
           inputs: [
             {
-              name: "greetingSetter",
+              name: "patient",
               type: "address",
               indexed: true,
               internalType: "address",
             },
             {
-              name: "newGreeting",
+              name: "doctor",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "ipfsCID",
               type: "string",
               indexed: false,
               internalType: "string",
             },
             {
-              name: "premium",
-              type: "bool",
+              name: "timestamp",
+              type: "uint256",
               indexed: false,
-              internalType: "bool",
+              internalType: "uint256",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "AccessRevoked",
+          inputs: [
+            {
+              name: "patient",
+              type: "address",
+              indexed: true,
+              internalType: "address",
             },
             {
-              name: "value",
+              name: "doctor",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "ipfsCID",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "DoctorRegistered",
+          inputs: [
+            {
+              name: "name",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "doctor",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "institution",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "department",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "PatientRegistered",
+          inputs: [
+            {
+              name: "name",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "patient",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+          ],
+          anonymous: false,
+        },
+        {
+          type: "event",
+          name: "RecordAdded",
+          inputs: [
+            {
+              name: "patient",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
+              name: "ipfsCID",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "description",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "timestamp",
               type: "uint256",
               indexed: false,
               internalType: "uint256",
