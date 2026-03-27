@@ -1,13 +1,15 @@
 "use client";
 
 import "../services/web3/appkit";
+import { PermissionlessProvider } from "@permissionless/wagmi";
+import { PonderProvider } from "@ponder/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
 //import { useTheme } from "next-themes";
 import { Toaster } from "react-hot-toast";
 import { Config, WagmiProvider, cookieToInitialState } from "wagmi";
-//import { Footer } from "~~/components/Footer";
-import { wagmiAdapter } from "~~/services/web3/wagmiConfig";
+import { client } from "~~/lib/ponder";
+import { capabilities, wagmiAdapter } from "~~/services/web3/wagmiConfig";
 
 const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -48,10 +50,14 @@ export const ScaffoldEthAppWithProviders = ({
 
   return (
     <WagmiProvider config={wagmiAdapter.wagmiConfig} initialState={initialState}>
-      <QueryClientProvider client={queryClient}>
-        <ProgressBar height="3px" color="#2299dd" />
-        <ScaffoldEthApp>{children}</ScaffoldEthApp>
-      </QueryClientProvider>
+      <PonderProvider client={client}>
+        <QueryClientProvider client={queryClient}>
+          <PermissionlessProvider capabilities={capabilities}>
+            <ProgressBar height="3px" color="#2299dd" />
+            <ScaffoldEthApp>{children}</ScaffoldEthApp>
+          </PermissionlessProvider>
+        </QueryClientProvider>
+      </PonderProvider>
     </WagmiProvider>
   );
 };

@@ -1,14 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAppKitWallet } from "@reown/appkit-wallet-button/react";
+import { useAppKitAccount, useDisconnect } from "@reown/appkit/react";
 //import { useRouter } from "next/navigation";
 //import { useAppKitWallet } from "@reown/appkit-wallet-button/react";
 import { motion } from "framer-motion";
 import { ArrowRight, FileCheck, Lock, Shield } from "lucide-react";
 import type { NextPage } from "next";
 import IdentityOverlay from "~~/components/IdentityOverlay";
+import DetailsModal from "~~/components/modals/details-modal";
 import LoginModal from "~~/components/modals/login-modal";
 import { Button } from "~~/components/ui/button";
+import { useDeployedContractInfo } from "~~/hooks/scaffold-eth";
+import useGasslessTxn from "~~/hooks/useGasslessTxn";
+import { useUserStatus } from "~~/hooks/useUserStatus";
+import { generateCardFingerprint } from "~~/utils/generate-card-fingerprint";
 
 //type AppView = "landing" | "patient" | "doctor";
 
@@ -22,14 +30,43 @@ const features = [
   { icon: FileCheck, title: "Tamper-Proof Vault", desc: "Every record is cryptographically verified and auditable." },
 ];
 const Home: NextPage = () => {
-  //const router = useRouter();
+  const router = useRouter();
   const [loginRole, setLoginRole] = useState<"patient" | "doctor">("patient");
+  const { data: vaultContract } = useDeployedContractInfo({ contractName: "MediVault" });
+  const { register, isSending, isConfirming, isConfirmed } = useGasslessTxn(
+    vaultContract?.address,
+    vaultContract?.abi,
+    loginRole,
+  );
+  const { disconnect } = useDisconnect();
+  const { isConnected } = useAppKitAccount();
 
-  // const [view, setView] = useState<AppView>("landing");
-  // const [authId, setAuthId] = useState<"google"| "email">("email");
+  const { isFirstTime } = useUserStatus();
+  const { connect } = useAppKitWallet({
+    namespace: "eip155",
+    onSuccess: () => {
+      if (isFirstTime === null || isFirstTime === true) {
+        setDetailsOpen(true);
+        return;
+      }
+
+      if (loginRole === "patient" && isFirstTime === false) {
+        router.push("dashboard/patient");
+      }
+      if (loginRole === "doctor" && isFirstTime === false) {
+        router.push("dashboard/doctor");
+      }
+    },
+    onError: error => {
+      console.log(error);
+    },
+  });
+
+  //console.log(isFirstTime);
 
   const [loginOpen, setLoginOpen] = useState(false);
-  //const [showOverlay, setShowOverlay] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const showOverlay = isSending || isConfirming || isConfirmed;
 
   const handleLoginClick = (role: "patient" | "doctor") => {
     setLoginRole(role);
@@ -37,18 +74,46 @@ const Home: NextPage = () => {
     setLoginOpen(true);
   };
 
-  const handleLoginSelect = (id: "google" | "email") => {
-    setLoginOpen(false);
+  const handleLoginSelect = async (id: "google" | "email") => {
+    //setLoginOpen(false);
     if (id === "google") {
-      //connect("google");
+      console.log("google button clicked..."); //wallet connect
+      await connect("google");
       return;
     } else {
-      // connect("email");
+      console.log("email button clicked...!");
+      await connect("email");
       return;
+      //
     }
 
     //setShowOverlay(true);
   };
+
+  const handleDataCaptured = useCallback(
+    async ({
+      name,
+      institution,
+      department,
+      cardId,
+    }: {
+      name: string;
+      institution: string;
+      department: string;
+      cardId: string;
+    }) => {
+      console.log({ name, institution, department, cardId });
+      setDetailsOpen(false);
+
+      if (loginRole === "patient") {
+        //generate cardFingerPrint for patients
+        const cardFingerPrint = await generateCardFingerprint(cardId as string);
+        //register userOnchain
+        register("registerPatient", [name, cardFingerPrint]);
+      }
+    },
+    [],
+  );
 
   // const handleOverlayComplete = useCallback(() => {
   //   setShowOverlay(false);
@@ -81,10 +146,21 @@ const Home: NextPage = () => {
             variant="ghost"
             size="sm"
             onClick={() => handleLoginClick("doctor")}
-            className="text-muted-foreground"
+            className="text-muted-foreground hover:cursor-pointer"
           >
-            Provider Login
+            GP Login
           </Button>
+          {isConnected && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => disconnect({ namespace: "eip155" })}
+              className="text-muted-foreground hover:cursor-pointer"
+            >
+              Logout
+            </Button>
+          )}
+
           <Button size="sm" onClick={() => handleLoginClick("patient")}>
             Secure Login
           </Button>
@@ -150,10 +226,21 @@ const Home: NextPage = () => {
         <LoginModal
           open={loginOpen}
           onClose={() => setLoginOpen(false)}
-          onSelect={() => handleLoginSelect}
+          onSelect={handleLoginSelect}
           role={loginRole}
         />
-        <IdentityOverlay visible={true} />
+        <DetailsModal
+          open={detailsOpen}
+          onClose={() => setDetailsOpen(false)}
+          role={loginRole}
+          onRegister={handleDataCaptured}
+        />
+        <IdentityOverlay
+          visible={showOverlay}
+          isSending={isSending}
+          isConfirming={isConfirming}
+          isConfirmed={isConfirmed}
+        />
       </section>
     </>
   );

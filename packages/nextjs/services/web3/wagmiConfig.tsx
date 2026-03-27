@@ -1,5 +1,5 @@
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
-import { type AppKitNetwork } from "@reown/appkit/networks";
+import { type AppKitNetwork, baseSepolia } from "@reown/appkit/networks";
 import { Chain } from "viem";
 import { mainnet } from "viem/chains";
 import { cookieStorage, createStorage } from "wagmi";
@@ -17,6 +17,13 @@ export const enabledChains = targetNetworks.find((network: Chain) => network.id 
   ? targetNetworks
   : ([...targetNetworks, mainnet] as const);
 
+export const capabilities = {
+  paymasterService: {
+    [baseSepolia.id]: {
+      url: `https://api.pimlico.io/v2/137/rpc?apikey=${process.env.NEXT_PUBLIC_PIMLICO_API_KEY}`,
+    },
+  },
+};
 export const networks: [AppKitNetwork, ...AppKitNetwork[]] = [...enabledChains] as [AppKitNetwork, ...AppKitNetwork[]];
 //export const networks: [AppKitNetwork, ...AppKitNetwork[]] = [mainnet, hardhat, foundry, sepolia, baseSepolia];
 export const wagmiAdapter = new WagmiAdapter({
@@ -26,6 +33,7 @@ export const wagmiAdapter = new WagmiAdapter({
   ssr: true,
   networks,
   projectId,
+
   //chains : enabledChains
   //   client: ({ chain }) => {
   //     const mainnetFallbackWithDefaultRPC = [http("https://mainnet.rpc.buidlguidl.com")];

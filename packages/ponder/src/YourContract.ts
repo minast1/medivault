@@ -1,14 +1,33 @@
 import { ponder } from "ponder:registry";
-import { greeting } from "ponder:schema";
+import { gp, patient } from "ponder:schema";
 
-ponder.on("YourContract:GreetingChange", async ({ event, context }) => {
-    // Create a new Greeting
-    await context.db.insert(greeting).values({
-        id: event.id,
-        text: event.args.newGreeting,
-        setterId: event.args.greetingSetter,
-        premium: event.args.premium,
-        value: event.args.value,
-        timestamp: Number(event.block.timestamp),
-    });
+ponder.on("MediVault:DoctorRegistered", async ({ event, context }) => {
+  const generateDID = (address: string, chainId: number) => {
+    return `did:pkh:eip155:${chainId}:${address.toLowerCase()}`;
+  };
+  const doctorAddress = event.args.doctor;
+  const didString = generateDID(doctorAddress, context.chain.id as number);
+  // Create a new GP
+  await context.db.insert(gp).values({
+    id: doctorAddress,
+    did: didString,
+    name: event.args.name,
+    institution: event.args.institution,
+    department: event.args.department,
+  });
+});
+
+ponder.on("MediVault:PatientRegistered", async ({ event, context }) => {
+  const generateDID = (address: string, chainId: number) => {
+    return `did:pkh:eip155:${chainId}:${address.toLowerCase()}`;
+  };
+  const patientAddress = event.args.patient;
+  const didString = generateDID(patientAddress, context.chain.id as number);
+  // Create a Patient
+  await context.db.insert(patient).values({
+    id: event.args.patient,
+    did: didString,
+    cardHash: event.args.key,
+    name: event.args.name,
+  });
 });

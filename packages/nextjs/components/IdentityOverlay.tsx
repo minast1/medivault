@@ -5,6 +5,9 @@ import { Check, Shield } from "lucide-react";
 
 interface IdentityOverlayProps {
   visible: boolean;
+  isSending: boolean;
+  isConfirming: boolean;
+  isConfirmed: boolean;
   //onComplete: () => void;
 }
 
@@ -15,7 +18,7 @@ const steps = [
   "Vault ready.",
 ];
 
-const IdentityOverlay = ({ visible }: IdentityOverlayProps) => {
+const IdentityOverlay = ({ visible, isSending, isConfirmed, isConfirming }: IdentityOverlayProps) => {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
@@ -23,13 +26,20 @@ const IdentityOverlay = ({ visible }: IdentityOverlayProps) => {
       setStep(0);
       return;
     }
-    const timers: NodeJS.Timeout[] = [];
-    steps.forEach((_, i) => {
-      timers.push(setTimeout(() => setStep(i), i * 900));
-    });
-    timers.push(setTimeout(() => {}, steps.length * 900 + 400));
-    return () => timers.forEach(clearTimeout);
-  }, [visible]);
+
+    if (isSending) {
+      setStep(0);
+    } else if (isConfirming) {
+      setStep(1);
+
+      // Simulate moving to "Encrypting" after a short delay during confirmation
+      // to keep the UI feeling dynamic while the block mines
+      const timer = setTimeout(() => setStep(2), 3000);
+      return () => clearTimeout(timer);
+    } else if (isConfirmed) {
+      setStep(3);
+    }
+  }, [visible, isSending, isConfirming, isConfirmed]);
 
   return (
     <AnimatePresence>

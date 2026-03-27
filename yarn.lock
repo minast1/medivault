@@ -3974,6 +3974,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@permissionless/wagmi@npm:^0.1.4":
+  version: 0.1.4
+  resolution: "@permissionless/wagmi@npm:0.1.4"
+  peerDependencies:
+    wagmi: ^2.12.8
+  checksum: a1673b5dd13748a184d90ac3300681c1c61b9b621d594b7cc759b0f8e12aa8e67e1e8e35a1ff93b7fc544a95314323914ed0eef3571291ce3492fd41e81efa34
+  languageName: node
+  linkType: hard
+
 "@phosphor-icons/webcomponents@npm:2.1.5":
   version: 2.1.5
   resolution: "@phosphor-icons/webcomponents@npm:2.1.5"
@@ -3994,6 +4003,39 @@ __metadata:
   version: 0.2.9
   resolution: "@pkgr/core@npm:0.2.9"
   checksum: bb2fb86977d63f836f8f5b09015d74e6af6488f7a411dcd2bfdca79d76b5a681a9112f41c45bdf88a9069f049718efc6f3900d7f1de66a2ec966068308ae517f
+  languageName: node
+  linkType: hard
+
+"@ponder/client@npm:^0.16.6":
+  version: 0.16.6
+  resolution: "@ponder/client@npm:0.16.6"
+  dependencies:
+    drizzle-orm: 0.41.0
+    eventsource: ^3.0.5
+    superjson: ^2.2.2
+  peerDependencies:
+    typescript: ">=5.0.4"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 6eeefedd46bb5f51d9614ed32ea86d8c3b5b28189ba2b13d0a2d912d271a1c6620202b9c31e2d86914b21b579fdb33c3fe5a50afb16804cf0e285d740f6d9cec
+  languageName: node
+  linkType: hard
+
+"@ponder/react@npm:^0.16.6":
+  version: 0.16.6
+  resolution: "@ponder/react@npm:0.16.6"
+  dependencies:
+    superjson: ^2.2.2
+  peerDependencies:
+    "@ponder/client": ">=0.16.6"
+    "@tanstack/react-query": ">=5.0.0"
+    react: ">=18"
+    typescript: ">=5.0.4"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: cf7c4ef1e29ab8ed9c1fc68c0d18564f149d8d9811f6e04958360483ff94bd5dcb2cc6c5b761407f4cfc1644f0e078e33dd7e3bd1bdea038c051c3c4d53d4218
   languageName: node
   linkType: hard
 
@@ -5975,6 +6017,9 @@ __metadata:
   resolution: "@se-2/nextjs@workspace:packages/nextjs"
   dependencies:
     "@heroicons/react": ~2.1.5
+    "@permissionless/wagmi": ^0.1.4
+    "@ponder/client": ^0.16.6
+    "@ponder/react": ^0.16.6
     "@react-native-async-storage/async-storage": ~2.2.0
     "@reown/appkit": ^1.8.19
     "@reown/appkit-adapter-wagmi": ^1.8.19
@@ -5987,6 +6032,7 @@ __metadata:
     "@trivago/prettier-plugin-sort-imports": ~4.3.0
     "@types/node": ~18.19.50
     "@types/react": ~19.0.7
+    "@types/react-dom": ^19.2.3
     abitype: 1.0.6
     autoprefixer: ~10.4.20
     bgipfs: ~0.0.12
@@ -6024,6 +6070,7 @@ __metadata:
     vercel: ~39.1.3
     viem: 2.39.0
     wagmi: 2.19.5
+    zod: ^4.3.6
     zustand: ~5.0.0
   languageName: unknown
   linkType: soft
@@ -7332,6 +7379,15 @@ __metadata:
   dependencies:
     undici-types: ~5.26.4
   checksum: b7032363581c416e721a88cffdc2b47662337cacd20f8294f5619a1abf79615c7fef1521964c2aa9d36ed6aae733e1a03e8c704661bd5a0c2f34b390f41ea395
+  languageName: node
+  linkType: hard
+
+"@types/react-dom@npm:^19.2.3":
+  version: 19.2.3
+  resolution: "@types/react-dom@npm:19.2.3"
+  peerDependencies:
+    "@types/react": ^19.2.0
+  checksum: b9c548f7378979cd8384444ae6c96f7a933b98e341c271c33e74231f27bf3082f04ad7c2927f1b1e6d8af35ccf83e549fce4978ebe0a02ded5a8803aa5f80e06
   languageName: node
   linkType: hard
 
@@ -12367,7 +12423,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eventsource@npm:^3.0.2":
+"eventsource@npm:^3.0.2, eventsource@npm:^3.0.5":
   version: 3.0.7
   resolution: "eventsource@npm:3.0.7"
   dependencies:
@@ -22264,7 +22320,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.25 || ^4.0, zod@npm:^4.1.5":
+"zod@npm:^3.25 || ^4.0, zod@npm:^4.1.5, zod@npm:^4.3.6":
   version: 4.3.6
   resolution: "zod@npm:4.3.6"
   checksum: 19cec761b46bae4b6e7e861ea740f3f248e50a6671825afc8a5758e27b35d6f20ccde9942422fd5cf6f8b697f18bd05ef8bb33f5f2db112ab25cc628de2fae47
