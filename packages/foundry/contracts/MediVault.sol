@@ -1,12 +1,16 @@
 //SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0 <0.9.0;
 
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+
 /**
  * @title MediVault
  * Health data and sovereign vault
  * @author Edmond Marfo
  */
 contract MediVault {
+    using ECDSA for bytes32 ; 
     // We only store the "Consent Status" to allow the contract to
     // verify permissions for on-chain logic if needed.
     // Mapping: Patient => Doctor => RecordCID => IsActive
@@ -14,8 +18,15 @@ contract MediVault {
         public hasAccess;
     mapping(address => bool) public isRegisteredDoctor;
 
+ // This "Typehash" defines the structure for EIP-712 signing
+    bytes32 private constant RECORD_TYPEHASH = keccak256(
+        "Record(address patient,string ipfsCID,string category)"
+    );
+
+
     event RecordAdded(
         address indexed patient,
+        address indexed doctor, 
         string ipfsCID,
         string description,
         uint256 timestamp
@@ -58,18 +69,40 @@ contract MediVault {
         emit PatientRegistered(_name, msg.sender, _key);
     }
 
-    /**
-     * @notice Adds a new medical record for a patient.
-     * @param ipfsCID The IPFS CID of the medical record.
-     * @param description A description of the medical record.
-     * @param timestamp The timestamp of the medical record.
+     /**
+     * @notice Adds a record signed by a doctor.
+     * @param patient The patient's address.
+     * @param cid The IPFS content identifier.
+     * @param description The medical category (e.g., "Radiology").
+     * @param signature The doctor's cryptographic signature.
      */
     function addRecord(
         string calldata ipfsCID,
-        string memory description,
-        uint256 timestamp
+        address patient, 
+        bytes calldata signature, 
+        string calldata category
     ) external {
-        emit RecordAdded(msg.sender, ipfsCID, description, timestamp);
+            address author; 
+
+            //Check if the caller is the patient (via thier Smart Account)
+            if(msg.sender === patient) {
+                author = patient;   /// Patient is adding their own record
+            } else {
+            // Recover the doctor/author from the signature if a Paymaster/Relayer called this
+                 bytes32 structHash = keccak256(abi.encode(
+            RECORD_TYPEHASH,
+            patient,
+            keccak256(bytes(ipfsCID)),
+            keccak256(bytes(category))
+        ));
+
+        // 2. Recover the signer (the doctor)
+        author  = MessageHashUtils.toEthSignedMessageHash(structHash).recover(signature);
+
+            }
+          // 1. Reconstruct the signed message hash
+      
+        emit RecordAdded(patient, author, ipfsCID, category, block.timestamp);
     }
 
     /**

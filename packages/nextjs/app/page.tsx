@@ -117,18 +117,6 @@ const Home: NextPage = () => {
     [],
   );
 
-  // const handleOverlayComplete = useCallback(() => {
-  //   setShowOverlay(false);
-  //   setView(loginRole);
-  // }, [loginRole]);
-
-  // if (view === 'patient') {
-  //   return <PatientDashboard onSwitchToDoctor={() => setView('doctor')} onLogout={() => setView('landing')} />;
-  // }
-
-  // if (view === 'doctor') {
-  //   return <DoctorDashboard onSwitchToPatient={() => setView('patient')} onLogout={() => setView('landing')} />;
-  // }
   return (
     <>
       <motion.header
