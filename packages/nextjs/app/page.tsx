@@ -112,6 +112,8 @@ const Home: NextPage = () => {
         register("registerPatient", [name, cardFingerPrint]);
       }
     },
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
