@@ -63,8 +63,12 @@ contract MediVault {
     /**
      * @notice Registers a patient account.
      */
-    function registerPatient(string calldata _name, bytes32 _key) external {
-        emit PatientRegistered(_name, msg.sender, _key);
+    function registerPatient(
+        string calldata _name,
+        address patient,
+        bytes32 _key
+    ) external {
+        emit PatientRegistered(_name, patient, _key);
     }
 
     /**

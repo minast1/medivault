@@ -13,6 +13,9 @@ createAppKit({
   projectId: projectId as string,
   networks: networks,
   defaultNetwork: networks[0],
+  defaultAccountTypes: {
+    eip155: "eoa",
+  },
   themeMode: "light",
   metadata: metadata,
   features: {

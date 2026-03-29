@@ -1,6 +1,6 @@
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import { type AppKitNetwork, baseSepolia } from "@reown/appkit/networks";
-import { Chain } from "viem";
+import { Chain, http } from "viem";
 import { mainnet } from "viem/chains";
 import { cookieStorage, createStorage } from "wagmi";
 import scaffoldConfig from "~~/scaffold.config";
@@ -20,7 +20,7 @@ export const enabledChains = targetNetworks.find((network: Chain) => network.id 
 export const capabilities = {
   paymasterService: {
     [baseSepolia.id]: {
-      url: `https://api.pimlico.io/v2/137/rpc?apikey=${process.env.NEXT_PUBLIC_PIMLICO_API_KEY}`,
+      url: `https://api.pimlico.io/v2/${baseSepolia.id}/rpc?apikey=${process.env.NEXT_PUBLIC_PIMLICO_API_KEY}`,
     },
   },
 };
@@ -33,53 +33,8 @@ export const wagmiAdapter = new WagmiAdapter({
   ssr: true,
   networks,
   projectId,
-
-  //chains : enabledChains
-  //   client: ({ chain }) => {
-  //     const mainnetFallbackWithDefaultRPC = [http("https://mainnet.rpc.buidlguidl.com")];
-  //     let rpcFallbacks = [...(chain.id === mainnet.id ? mainnetFallbackWithDefaultRPC : []), http()];
-  //     const rpcOverrideUrl = (scaffoldConfig.rpcOverrides as ScaffoldConfig["rpcOverrides"])?.[chain.id];
-  //     if (rpcOverrideUrl) {
-  //       rpcFallbacks = [http(rpcOverrideUrl), ...rpcFallbacks];
-  //     } else {
-  //       const alchemyHttpUrl = getAlchemyHttpUrl(chain.id);
-  //       if (alchemyHttpUrl) {
-  //         const isUsingDefaultKey = scaffoldConfig.alchemyApiKey === DEFAULT_ALCHEMY_API_KEY;
-  //         rpcFallbacks = isUsingDefaultKey
-  //           ? [...rpcFallbacks, http(alchemyHttpUrl)]
-  //           : [http(alchemyHttpUrl), ...rpcFallbacks];
-  //       }
-  //     }
-  //     return createClient({
-  //       chain,
-  //       transport: fallback(rpcFallbacks),
-  //       ...(chain.id !== (hardhat as Chain).id ? { pollingInterval: scaffoldConfig.pollingInterval } : {}),
-  //     });
-  //   },
+  chains: enabledChains,
+  transports: {
+    [baseSepolia.id]: http("https://sepolia.base.org"),
+  },
 });
-// export const wagmiConfig = createConfig({
-//   chains: enabledChains,
-//   connectors: wagmiConnectors(),
-//   ssr: true,
-//   client: ({ chain }) => {
-//     const mainnetFallbackWithDefaultRPC = [http("https://mainnet.rpc.buidlguidl.com")];
-//     let rpcFallbacks = [...(chain.id === mainnet.id ? mainnetFallbackWithDefaultRPC : []), http()];
-//     const rpcOverrideUrl = (scaffoldConfig.rpcOverrides as ScaffoldConfig["rpcOverrides"])?.[chain.id];
-//     if (rpcOverrideUrl) {
-//       rpcFallbacks = [http(rpcOverrideUrl), ...rpcFallbacks];
-//     } else {
-//       const alchemyHttpUrl = getAlchemyHttpUrl(chain.id);
-//       if (alchemyHttpUrl) {
-//         const isUsingDefaultKey = scaffoldConfig.alchemyApiKey === DEFAULT_ALCHEMY_API_KEY;
-//         rpcFallbacks = isUsingDefaultKey
-//           ? [...rpcFallbacks, http(alchemyHttpUrl)]
-//           : [http(alchemyHttpUrl), ...rpcFallbacks];
-//       }
-//     }
-//     return createClient({
-//       chain,
-//       transport: fallback(rpcFallbacks),
-//       ...(chain.id !== (hardhat as Chain).id ? { pollingInterval: scaffoldConfig.pollingInterval } : {}),
-//     });
-//   },
-// });

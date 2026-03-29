@@ -5582,7 +5582,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@reown/appkit-wallet-button@npm:^1.8.19":
+"@reown/appkit-wallet-button@npm:latest":
   version: 1.8.19
   resolution: "@reown/appkit-wallet-button@npm:1.8.19"
   dependencies:
@@ -6021,9 +6021,9 @@ __metadata:
     "@ponder/client": ^0.16.6
     "@ponder/react": ^0.16.6
     "@react-native-async-storage/async-storage": ~2.2.0
-    "@reown/appkit": ^1.8.19
-    "@reown/appkit-adapter-wagmi": ^1.8.19
-    "@reown/appkit-wallet-button": ^1.8.19
+    "@reown/appkit": latest
+    "@reown/appkit-adapter-wagmi": latest
+    "@reown/appkit-wallet-button": latest
     "@scaffold-ui/components": ^0.1.8
     "@scaffold-ui/debug-contracts": ^0.1.7
     "@scaffold-ui/hooks": ^0.1.6
@@ -6053,6 +6053,7 @@ __metadata:
     next: ~15.2.8
     next-nprogress-bar: ~2.3.13
     next-themes: ~0.3.0
+    permissionless: ^0.3.4
     postcss: ~8.4.45
     prettier: ~3.5.3
     qrcode.react: ~4.0.1
@@ -6068,7 +6069,7 @@ __metadata:
     typescript: ~5.8.2
     usehooks-ts: ~3.1.0
     vercel: ~39.1.3
-    viem: 2.39.0
+    viem: latest
     wagmi: 2.19.5
     zod: ^4.3.6
     zustand: ~5.0.0
@@ -17625,6 +17626,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"permissionless@npm:^0.3.4":
+  version: 0.3.4
+  resolution: "permissionless@npm:0.3.4"
+  peerDependencies:
+    ox: ^0.11.3
+    viem: ^2.44.4
+  peerDependenciesMeta:
+    ox:
+      optional: true
+  checksum: 890f22c383757db774e6f76c2e28952115568d5c536f612cfccbc63b3974cd1a5b5a6d47c5d06677e19ea4ccdf6f791980856b49565bd1956fa684773b92a679
+  languageName: node
+  linkType: hard
+
 "pg-cloudflare@npm:^1.3.0":
   version: 1.3.0
   resolution: "pg-cloudflare@npm:1.3.0"
@@ -21632,7 +21646,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"viem@npm:>=2.45.0, viem@npm:^2.1.1, viem@npm:^2.21.26, viem@npm:^2.21.3, viem@npm:^2.27.2, viem@npm:^2.31.7":
+"viem@npm:>=2.45.0, viem@npm:^2.1.1, viem@npm:^2.21.26, viem@npm:^2.21.3, viem@npm:^2.27.2, viem@npm:^2.31.7, viem@npm:latest":
   version: 2.47.6
   resolution: "viem@npm:2.47.6"
   dependencies:

@@ -5,9 +5,9 @@
 import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
 const deployedContracts = {
-  31337: {
+  84532: {
     MediVault: {
-      address: "0x700b6a60ce7eaaea56f065753d8dcb9653dbad35",
+      address: "0x3e99b9b86735125abe8b24f851c2c843c5f6e02a",
       abi: [
         {
           type: "function",
@@ -19,14 +19,19 @@ const deployedContracts = {
               internalType: "string",
             },
             {
-              name: "description",
-              type: "string",
-              internalType: "string",
+              name: "patient",
+              type: "address",
+              internalType: "address",
             },
             {
-              name: "timestamp",
-              type: "uint256",
-              internalType: "uint256",
+              name: "signature",
+              type: "bytes",
+              internalType: "bytes",
+            },
+            {
+              name: "category",
+              type: "string",
+              internalType: "string",
             },
           ],
           outputs: [],
@@ -134,6 +139,11 @@ const deployedContracts = {
               name: "_name",
               type: "string",
               internalType: "string",
+            },
+            {
+              name: "patient",
+              type: "address",
+              internalType: "address",
             },
             {
               name: "_key",
@@ -285,6 +295,12 @@ const deployedContracts = {
               internalType: "address",
             },
             {
+              name: "doctor",
+              type: "address",
+              indexed: true,
+              internalType: "address",
+            },
+            {
               name: "ipfsCID",
               type: "string",
               indexed: false,
@@ -305,9 +321,36 @@ const deployedContracts = {
           ],
           anonymous: false,
         },
+        {
+          type: "error",
+          name: "ECDSAInvalidSignature",
+          inputs: [],
+        },
+        {
+          type: "error",
+          name: "ECDSAInvalidSignatureLength",
+          inputs: [
+            {
+              name: "length",
+              type: "uint256",
+              internalType: "uint256",
+            },
+          ],
+        },
+        {
+          type: "error",
+          name: "ECDSAInvalidSignatureS",
+          inputs: [
+            {
+              name: "s",
+              type: "bytes32",
+              internalType: "bytes32",
+            },
+          ],
+        },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 1,
+      deployedOnBlock: 39450686,
     },
   },
 } as const;

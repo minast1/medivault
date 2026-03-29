@@ -2,7 +2,7 @@ import React, { useActionState, useEffect, useState } from "react";
 import CardInput from "../CardInput";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Label } from "../ui/label";
-import { Shield } from "lucide-react";
+import { Loader2, Shield } from "lucide-react";
 import { z } from "zod";
 import { Button } from "~~/components/ui/button";
 import { Input } from "~~/components/ui/input";
@@ -10,7 +10,9 @@ import { Input } from "~~/components/ui/input";
 type TProps = {
   open: boolean;
   onClose: () => void;
+  isWaiting: boolean;
   role: string;
+
   onRegister: ({
     name,
     institution,
@@ -37,7 +39,7 @@ type FormState = {
 const baseSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
 });
-const DetailsModal = ({ open, onClose, role, onRegister }: TProps) => {
+const DetailsModal = ({ open, onClose, role, onRegister, isWaiting }: TProps) => {
   const handleSubmission = async (prevState: FormState, formData: FormData): Promise<FormState> => {
     const data =
       role === "doctor"
@@ -64,6 +66,7 @@ const DetailsModal = ({ open, onClose, role, onRegister }: TProps) => {
 
     // If valid, you would trigger your contract write here
     console.log("Valid registration:", validated.data);
+
     return { success: true, errors: {}, data: validated.data };
     //onSuccess call onRegistered to switch to overlay;
   };
@@ -175,8 +178,17 @@ const DetailsModal = ({ open, onClose, role, onRegister }: TProps) => {
             </>
           )}
 
-          <Button className="w-full gap-2 h-11">
-            {role === "doctor" ? "Continue to Dashboard" : "Continue to Vault"}
+          <Button className="w-full gap-2 h-11" disabled={isWaiting}>
+            {isWaiting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : role === "doctor" ? (
+              "Continue to Dashboard"
+            ) : (
+              "Continue to Vault"
+            )}
           </Button>
         </form>
         <p className="text-xs text-muted-foreground text-center mt-3">

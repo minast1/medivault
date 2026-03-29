@@ -36,12 +36,14 @@ export const gp = onchainTable("gps", (t) => ({
 // /**
 //  * Records: Indexed from the 'RecordAdded' event.
 //  */
-// export const record = onchainTable("record", (t) => ({
-//   id: t.text().primaryKey(), // IPFS CID
-//   patientId: t.text().notNull(),
-//   category: t.text(),
-//   timestamp: t.integer().notNull(),
-// }));
+export const record = onchainTable("record", (t) => ({
+  id: t.text().primaryKey(), // IPFS CID
+  patientId: t.text().notNull(), // The vault owner
+  authorId: t.text().notNull(), // The actual signer/creator
+  category: t.text().notNull(),
+  isVerified: t.boolean().notNull(), // True if author is a doctor
+  timestamp: t.integer().notNull(),
+}));
 
 // /**
 //  * Permissions: Junction table for Patient <-> Doctor many-to-many relationship.

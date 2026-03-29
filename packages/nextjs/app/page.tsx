@@ -9,7 +9,9 @@ import { useAppKitAccount, useDisconnect } from "@reown/appkit/react";
 import { motion } from "framer-motion";
 import { ArrowRight, FileCheck, Lock, Shield } from "lucide-react";
 import type { NextPage } from "next";
+import { useAccount } from "wagmi";
 import IdentityOverlay from "~~/components/IdentityOverlay";
+//import IdentityOverlay from "~~/components/IdentityOverlay";
 import DetailsModal from "~~/components/modals/details-modal";
 import LoginModal from "~~/components/modals/login-modal";
 import { Button } from "~~/components/ui/button";
@@ -32,17 +34,16 @@ const features = [
 const Home: NextPage = () => {
   const router = useRouter();
   const [loginRole, setLoginRole] = useState<"patient" | "doctor">("patient");
-  const { data: vaultContract } = useDeployedContractInfo({ contractName: "MediVault" });
-  const { register, isSending, isConfirming, isConfirmed } = useGasslessTxn(
-    vaultContract?.address,
-    vaultContract?.abi,
-    loginRole,
-  );
+  const { data: vaultContract, isLoading: isLoadingContract } = useDeployedContractInfo({ contractName: "MediVault" });
+  const { address } = useAccount();
+
+  const { register, isPending, isWaiting } = useGasslessTxn(vaultContract?.address, vaultContract?.abi, loginRole);
+
   const { disconnect } = useDisconnect();
   const { isConnected } = useAppKitAccount();
 
   const { isFirstTime } = useUserStatus();
-  const { connect } = useAppKitWallet({
+  const { connect, isPending: isAuthPending } = useAppKitWallet({
     namespace: "eip155",
     onSuccess: () => {
       if (isFirstTime === null || isFirstTime === true) {
@@ -66,7 +67,7 @@ const Home: NextPage = () => {
 
   const [loginOpen, setLoginOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const showOverlay = isSending || isConfirming || isConfirmed;
+  //const showOverlay = isSending || isConfirming || isConfirmed;
 
   const handleLoginClick = (role: "patient" | "doctor") => {
     setLoginRole(role);
@@ -103,18 +104,23 @@ const Home: NextPage = () => {
       cardId: string;
     }) => {
       console.log({ name, institution, department, cardId });
-      setDetailsOpen(false);
+      if (!address) {
+        console.error("No wallet address found during submission");
+        return;
+      }
 
-      if (loginRole === "patient") {
+      if (loginRole === "patient" && !isPending) {
         //generate cardFingerPrint for patients
-        const cardFingerPrint = await generateCardFingerprint(cardId as string);
+        const cardFingerPrint = generateCardFingerprint(cardId as string);
+
         //register userOnchain
-        register("registerPatient", [name, cardFingerPrint]);
+        await register("registerPatient", [name, address, cardFingerPrint]);
+        setDetailsOpen(false);
       }
     },
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [loginRole, register, address],
   );
 
   return (
@@ -134,6 +140,7 @@ const Home: NextPage = () => {
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
+            disabled={isLoadingContract === true}
             size="sm"
             onClick={() => handleLoginClick("doctor")}
             className="text-muted-foreground hover:cursor-pointer"
@@ -151,7 +158,7 @@ const Home: NextPage = () => {
             </Button>
           )}
 
-          <Button size="sm" onClick={() => handleLoginClick("patient")}>
+          <Button size="sm" onClick={() => handleLoginClick("patient")} disabled={isLoadingContract === true}>
             Secure Login
           </Button>
         </div>
@@ -217,20 +224,17 @@ const Home: NextPage = () => {
           open={loginOpen}
           onClose={() => setLoginOpen(false)}
           onSelect={handleLoginSelect}
+          isPending={isAuthPending}
           role={loginRole}
         />
         <DetailsModal
           open={detailsOpen}
           onClose={() => setDetailsOpen(false)}
           role={loginRole}
+          isWaiting={isPending}
           onRegister={handleDataCaptured}
         />
-        <IdentityOverlay
-          visible={showOverlay}
-          isSending={isSending}
-          isConfirming={isConfirming}
-          isConfirmed={isConfirmed}
-        />
+        <IdentityOverlay visible={isWaiting} />
       </section>
     </>
   );

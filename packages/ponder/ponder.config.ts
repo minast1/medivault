@@ -1,6 +1,7 @@
 import { createConfig } from "ponder";
 import deployedContracts from "../nextjs/contracts/deployedContracts";
 import scaffoldConfig from "../nextjs/scaffold.config";
+import { fallback, http } from "viem";
 
 const targetNetwork = scaffoldConfig.targetNetworks[0];
 
@@ -14,10 +15,8 @@ if (!deployedContractsForNetwork) {
 const chains = {
   [targetNetwork.name]: {
     id: targetNetwork.id,
-    rpc:
-      process.env[`PONDER_RPC_URL_${targetNetwork.id}`] ||
-      "http://127.0.0.1:8545",
-    //ws : "ws://127.0.0.1:8545", //change this in production
+    rpc: "https://base-sepolia.g.alchemy.com/v2/OwUO0Ax2yKri2eHGFWnYu",
+    ws: "wss://base-sepolia.g.alchemy.com/v2/OwUO0Ax2yKri2eHGFWnYu",
   },
 };
 
