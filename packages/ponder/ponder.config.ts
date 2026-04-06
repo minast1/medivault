@@ -1,7 +1,6 @@
 import { createConfig } from "ponder";
 import deployedContracts from "../nextjs/contracts/deployedContracts";
 import scaffoldConfig from "../nextjs/scaffold.config";
-import { fallback, http } from "viem";
 
 const targetNetwork = scaffoldConfig.targetNetworks[0];
 
@@ -30,8 +29,7 @@ const contracts = Object.fromEntries(
         chain: targetNetwork.name as string,
         abi: deployedContractsForNetwork[contractName].abi,
         address: deployedContractsForNetwork[contractName].address,
-        startBlock:
-          deployedContractsForNetwork[contractName].deployedOnBlock || 0,
+        startBlock: "latest", // deployedContractsForNetwork[contractName].deployedOnBlock || 0,
       },
     ];
   }),

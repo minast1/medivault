@@ -1,49 +1,36 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { useAppKitAccount } from "@reown/appkit/react";
+import { useQuery } from "urql";
+import { CHECK_USER_QUERY } from "~~/graphql/queries/auth";
 
 export const useUserStatus = () => {
   const { address, isConnected } = useAppKitAccount();
-  const [isFirstTime, setIsFirstTime] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(false);
+  const shouldPause = isConnected === false || address === undefined;
+  const [{ data, fetching, error }] = useQuery({
+    query: CHECK_USER_QUERY,
+    variables: { id: address?.toLowerCase() ?? "" },
+    requestPolicy: "cache-and-network",
+    pause: shouldPause,
+  });
 
-  useEffect(() => {
-    const checkUser = async () => {
-      if (!isConnected || !address) return;
-      setLoading(true);
+  const isFirstTime = useMemo(() => {
+    // If we haven't connected or are still fetching, we don't know yet
+    if (!isConnected || !address || fetching) return null;
 
-      try {
-        // Query Ponder's GraphQL endpoint directly
-        const response = await fetch("http://localhost:42069/graphql", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            query: `
-              query CheckUser($id: String!) {
-                patient(id: $id) { id }
-                gp(id: $id) { id }
-              }
-            `,
-            variables: { id: address.toLowerCase() },
-          }),
-        });
+    // 4. Fallback: If there's an error (server down/table missing), treat as first-time
+    if (error) {
+      console.warn("User status check error:", error);
+      return true;
+    }
 
-        const result = await response.json();
+    // Check if the user exists in either the patient or gp table
+    const registered = !!(data?.patient || data?.gp);
+    return !registered;
+  }, [data, fetching, error, isConnected, address]);
 
-        // If 'data' is missing or null, the table probably doesn't exist yet
-        // In both cases (table missing OR user not found), they are "First Time"
-        const registered = result.data?.patient || result.data?.gp;
-        setIsFirstTime(!registered);
-      } catch (err) {
-        console.warn(err);
-        // If the server is down or tables missing, treat as first-time/not-found
-        setIsFirstTime(true);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkUser();
-  }, [address, isConnected]);
-
-  return { isFirstTime, loading };
+  return {
+    isFirstTime,
+    loading: fetching,
+    error,
+  };
 };

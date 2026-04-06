@@ -1,13 +1,13 @@
 "use client";
 
 import "../services/web3/appkit";
-import { PonderProvider } from "@ponder/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
 //import { useTheme } from "next-themes";
 import { Toaster } from "react-hot-toast";
+import { Provider as URQLProvider } from "urql";
 import { Config, WagmiProvider, cookieToInitialState } from "wagmi";
-import { client } from "~~/lib/ponder";
+import urqlClient from "~~/graphql/client";
 import { wagmiAdapter } from "~~/services/web3/wagmiConfig";
 
 const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
@@ -49,12 +49,12 @@ export const ScaffoldEthAppWithProviders = ({
 
   return (
     <WagmiProvider config={wagmiAdapter.wagmiConfig} initialState={initialState}>
-      <PonderProvider client={client}>
-        <QueryClientProvider client={queryClient}>
-          <ProgressBar height="3px" color="#2299dd" />
+      <QueryClientProvider client={queryClient}>
+        <ProgressBar height="3px" color="#2299dd" />
+        <URQLProvider value={urqlClient}>
           <ScaffoldEthApp>{children}</ScaffoldEthApp>
-        </QueryClientProvider>
-      </PonderProvider>
+        </URQLProvider>
+      </QueryClientProvider>
     </WagmiProvider>
   );
 };

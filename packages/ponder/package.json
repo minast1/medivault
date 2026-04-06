@@ -14,7 +14,7 @@
   "dependencies": {
     "drizzle-kit": "0.22.8",
     "hono": "^4.5.0",
-    "ponder": "^0.15.17",
+    "ponder": "^0.16.6",
     "viem": "^2.21.3"
   },
   "devDependencies": {

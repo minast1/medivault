@@ -10,8 +10,8 @@ import { Input } from "~~/components/ui/input";
 type TProps = {
   open: boolean;
   onClose: () => void;
-  isWaiting: boolean;
-  role: string;
+  // isWaiting: boolean;
+  role: string | undefined;
 
   onRegister: ({
     name,
@@ -39,7 +39,7 @@ type FormState = {
 const baseSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
 });
-const DetailsModal = ({ open, onClose, role, onRegister, isWaiting }: TProps) => {
+const DetailsModal = ({ open, onClose, role, onRegister }: TProps) => {
   const handleSubmission = async (prevState: FormState, formData: FormData): Promise<FormState> => {
     const data =
       role === "doctor"
@@ -70,7 +70,7 @@ const DetailsModal = ({ open, onClose, role, onRegister, isWaiting }: TProps) =>
     return { success: true, errors: {}, data: validated.data };
     //onSuccess call onRegistered to switch to overlay;
   };
-  const [state, formAction] = useActionState(handleSubmission, {
+  const [state, formAction, isPending] = useActionState(handleSubmission, {
     errors: {},
     success: false,
   });
@@ -142,22 +142,29 @@ const DetailsModal = ({ open, onClose, role, onRegister, isWaiting }: TProps) =>
 
         <form action={formAction} className="flex flex-col gap-4 mt-2">
           <div className="space-y-2">
-            <Label htmlFor="provider-name">Provider Name</Label>
-            <Input id="provider-name" name="name" placeholder="e.g. Sarah Chen" />
+            <Label htmlFor="provider-name">{role === "doctor" ? "Doctor/GP Name" : "Provider Name"}</Label>
+            <Input
+              id="provider-name"
+              name="name"
+              placeholder={role === "doctor" ? "e.g. Dr. Sarah Chen" : "e.g. Sarah Chen"}
+            />
             {state.errors?.name && <span className="text-destructive text-xs">{state.errors.name[0]}</span>}
           </div>
           <input type="hidden" name="cardId" value={value} />
-          <div className="space-y-2">
-            <Label htmlFor="provider-cardId">GH CardId</Label>
-            <CardInput
-              name="cardId"
-              placeholder="e.g. GHA-772662626-0"
-              value={value}
-              onChange={handleChange}
-              id="provider-cardId"
-            />
-            {state.errors?.cardId && <span className="text-destructive text-xs">{state.errors.cardId[0]}</span>}
-          </div>
+          {role === "patient" && (
+            <div className="space-y-2">
+              <Label htmlFor="provider-cardId">GH CardId</Label>
+              <CardInput
+                name="cardId"
+                placeholder="e.g. GHA-772662626-0"
+                value={value}
+                onChange={handleChange}
+                id="provider-cardId"
+              />
+              {state.errors?.cardId && <span className="text-destructive text-xs">{state.errors.cardId[0]}</span>}
+            </div>
+          )}
+
           {role === "doctor" && (
             <>
               <div className="space-y-2">
@@ -178,11 +185,10 @@ const DetailsModal = ({ open, onClose, role, onRegister, isWaiting }: TProps) =>
             </>
           )}
 
-          <Button className="w-full gap-2 h-11" disabled={isWaiting}>
-            {isWaiting ? (
+          <Button className="w-full gap-2 h-11">
+            {isPending ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Processing...
+                <Loader2 className="w-4 h-4 animate-spin" /> Loading..{" "}
               </>
             ) : role === "doctor" ? (
               "Continue to Dashboard"

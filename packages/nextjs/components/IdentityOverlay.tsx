@@ -23,12 +23,24 @@ const IdentityOverlay = ({ visible }: IdentityOverlayProps) => {
       setStep(0);
       return;
     }
-    const timers: NodeJS.Timeout[] = [];
-    steps.forEach((_, i) => {
-      timers.push(setTimeout(() => setStep(i), i * 900));
-    });
-    timers.push(setTimeout(() => console.log("Transaction Complete"), steps.length * 900 + 400));
-    return () => timers.forEach(clearTimeout);
+
+    // Phase 1: Auto-advance through the first 3 steps (0, 1, 2)
+    // We hold at step 2 ("Encrypting...") until isDone is true
+    const interval = setInterval(() => {
+      setStep(prev => {
+        if (prev < 2) return prev + 1;
+        return prev;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [visible]);
+
+  // Phase 2: When the transaction actually finishes, jump to the final step
+  useEffect(() => {
+    if (visible) {
+      setStep(3); // Jump to "Vault ready."
+    }
   }, [visible]);
 
   return (
@@ -39,7 +51,7 @@ const IdentityOverlay = ({ visible }: IdentityOverlayProps) => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background"
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background bg-hero bg-repeat"
         >
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}

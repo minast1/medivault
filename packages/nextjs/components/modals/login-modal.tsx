@@ -10,7 +10,7 @@ interface LoginModalProps {
   onClose: () => void;
   isPending: boolean;
   onSelect: (id: "google" | "email") => void;
-  role: "patient" | "doctor";
+  role: "patient" | "doctor" | undefined;
 }
 const LoginModal = ({ open, onClose, role, onSelect, isPending }: LoginModalProps) => {
   return (

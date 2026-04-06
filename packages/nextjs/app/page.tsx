@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppKitWallet } from "@reown/appkit-wallet-button/react";
 import { useAppKitAccount, useDisconnect } from "@reown/appkit/react";
@@ -11,6 +11,7 @@ import { ArrowRight, FileCheck, Lock, Shield } from "lucide-react";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
 import IdentityOverlay from "~~/components/IdentityOverlay";
+//import IdentityOverlay from "~~/components/IdentityOverlay";
 //import IdentityOverlay from "~~/components/IdentityOverlay";
 import DetailsModal from "~~/components/modals/details-modal";
 import LoginModal from "~~/components/modals/login-modal";
@@ -33,47 +34,59 @@ const features = [
 ];
 const Home: NextPage = () => {
   const router = useRouter();
-  const [loginRole, setLoginRole] = useState<"patient" | "doctor">("patient");
+  const [loginRole, setLoginRole] = useState<"patient" | "doctor">();
   const { data: vaultContract, isLoading: isLoadingContract } = useDeployedContractInfo({ contractName: "MediVault" });
   const { address } = useAccount();
 
-  const { register, isPending, isWaiting } = useGasslessTxn(vaultContract?.address, vaultContract?.abi, loginRole);
+  const { sendTx, isPending, isWaiting } = useGasslessTxn(
+    vaultContract?.address,
+    vaultContract?.abi,
+    loginRole,
+    "register",
+  );
 
   const { disconnect } = useDisconnect();
   const { isConnected } = useAppKitAccount();
 
   const { isFirstTime } = useUserStatus();
+
   const { connect, isPending: isAuthPending } = useAppKitWallet({
     namespace: "eip155",
     onSuccess: () => {
       if (isFirstTime === null || isFirstTime === true) {
-        setDetailsOpen(true);
-        return;
-      }
-
-      if (loginRole === "patient" && isFirstTime === false) {
-        router.push("dashboard/patient");
-      }
-      if (loginRole === "doctor" && isFirstTime === false) {
-        router.push("dashboard/doctor");
+        setLoginOpen(false);
       }
     },
     onError: error => {
       console.log(error);
+      disconnect();
     },
   });
 
-  //console.log(isFirstTime);
+  console.log({ isFirstTime });
 
   const [loginOpen, setLoginOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  //const showOverlay = isSending || isConfirming || isConfirmed;
 
   const handleLoginClick = (role: "patient" | "doctor") => {
     setLoginRole(role);
 
     setLoginOpen(true);
   };
+
+  //Watcher for successfull login
+  useEffect(() => {
+    // Only run if we actually have a result for isFirstTime
+    if (isFirstTime === null || loginRole === undefined) return;
+
+    if (isFirstTime === true && address) {
+      setDetailsOpen(true);
+    } else {
+      // Navigate based on role if they are NOT a first-time user
+      if (loginRole === "patient" && address) router.push("/dashboard/patient");
+      if (loginRole === "doctor" && address) router.push("/dashboard/doctor");
+    }
+  }, [isFirstTime, loginRole, address, router]);
 
   const handleLoginSelect = async (id: "google" | "email") => {
     //setLoginOpen(false);
@@ -103,24 +116,26 @@ const Home: NextPage = () => {
       department: string;
       cardId: string;
     }) => {
-      console.log({ name, institution, department, cardId });
       if (!address) {
-        console.error("No wallet address found during submission");
+        console.warn("No wallet address found during submission");
         return;
       }
-
+      setDetailsOpen(false);
       if (loginRole === "patient" && !isPending) {
         //generate cardFingerPrint for patients
         const cardFingerPrint = generateCardFingerprint(cardId as string);
 
         //register userOnchain
-        await register("registerPatient", [name, address, cardFingerPrint]);
-        setDetailsOpen(false);
+        await sendTx("registerPatient", [name, address, cardFingerPrint]);
+      }
+
+      if (loginRole === "doctor" && !isPending) {
+        await sendTx("registerDoctor", [name, institution, department, address]);
       }
     },
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [loginRole, register, address],
+    [loginRole, sendTx, address],
   );
 
   return (
@@ -231,7 +246,7 @@ const Home: NextPage = () => {
           open={detailsOpen}
           onClose={() => setDetailsOpen(false)}
           role={loginRole}
-          isWaiting={isPending}
+          //isWaiting={isPending}
           onRegister={handleDataCaptured}
         />
         <IdentityOverlay visible={isWaiting} />

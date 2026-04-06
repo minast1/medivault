@@ -7,18 +7,24 @@ import { Abi, Address, BaseError, encodeFunctionData, http } from "viem";
 import { entryPoint07Address } from "viem/account-abstraction";
 import { baseSepolia } from "viem/chains";
 import { usePublicClient, useWalletClient } from "wagmi";
+import { derivePublicKeyFromAddress } from "~~/utils/cryptography";
 
-const useGasslessTxn = (contractAddress: Address | undefined, abi: Abi | undefined, userRole: "patient" | "doctor") => {
+const useGasslessTxn = (
+  contractAddress: Address | undefined,
+  abi: Abi | undefined,
+  userRole: "patient" | "doctor" | undefined,
+  actionType: "register" | "txn" = "txn",
+) => {
   const router = useRouter();
   const publicClient = usePublicClient();
   const [isPending, setIsPending] = useState(false);
   const [isWaiting, setIsWaiting] = useState(false);
   const { data: walletClient } = useWalletClient();
 
-  const register = useCallback(
+  const sendTx = useCallback(
     async (functionName: string, args: any[]) => {
       if (!walletClient?.account || !contractAddress || !abi || !publicClient) {
-        console.error("Wallet not connected or contract info missing");
+        console.warn("Missing requirements for transaction");
         return;
       }
       setIsPending(true);
@@ -47,7 +53,6 @@ const useGasslessTxn = (contractAddress: Address | undefined, abi: Abi | undefin
 
         const safeAccount = await toSafeSmartAccount({
           client: publicClient,
-
           owners: [customSigner],
           entryPoint: {
             address: entryPoint07Address,
@@ -67,13 +72,19 @@ const useGasslessTxn = (contractAddress: Address | undefined, abi: Abi | undefin
             },
           },
         });
-
+        let finalArgs = args;
+        if (actionType === "register" && userRole === "patient") {
+          const publicKey = await derivePublicKeyFromAddress(safeAccount.address);
+          finalArgs = [...args, publicKey];
+        }
+        //  args = actionType === "register" && userRole === "patient" ? [...args, publicKey] : args;
         const hash = await smartClient.sendTransaction({
           to: contractAddress,
+
           data: encodeFunctionData({
             abi,
             functionName,
-            args,
+            args: finalArgs,
           }),
         });
 
@@ -81,14 +92,22 @@ const useGasslessTxn = (contractAddress: Address | undefined, abi: Abi | undefin
         setIsWaiting(true);
 
         await publicClient.waitForTransactionReceipt({ hash });
-        // Redirect based on role
-        if (userRole === "patient") {
-          router.push("/dashboard/patient");
-        } else if (userRole === "doctor") {
-          router.push("/dashboard/doctor");
+
+        if (actionType === "register") {
+          // Small delay to let the "Vault Ready" animation finish
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          // Redirect based on role
+          if (userRole === "patient") {
+            router.push("/dashboard/patient");
+          } else if (userRole === "doctor") {
+            router.push("/dashboard/doctor");
+          }
         }
       } catch (error: any) {
+        setIsPending(false);
+        setIsWaiting(false);
         console.error("Gasless Tx Failed:", error);
+
         // 3. Robust Error Handling
         if (error instanceof BaseError) {
           console.error("Viem/Contract Error:", error.shortMessage);
@@ -99,16 +118,13 @@ const useGasslessTxn = (contractAddress: Address | undefined, abi: Abi | undefin
         } else {
           console.error("Gasless Tx Failed:", error.message || error);
         }
-      } finally {
-        setIsPending(false);
-        setIsWaiting(false);
       }
     },
-    [contractAddress, abi, userRole, router, walletClient, publicClient],
+    [contractAddress, abi, userRole, router, walletClient, publicClient, actionType],
   );
 
   return {
-    register,
+    sendTx,
     isPending,
     isWaiting,
   };

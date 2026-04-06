@@ -24,18 +24,28 @@ contract MediVault {
 
     event RecordAdded(
         address indexed patient,
-        address indexed doctor,
-        string ipfsCID,
+        address author,
+        string indexed ipfsCID,
         string description,
+        string mimeType,
+        string wrappedKey,
+        string ivector,
         uint256 timestamp
     );
     event DoctorRegistered(
         string name,
         address indexed doctor,
+        address smartAccount,
         string institution,
         string department
     );
-    event PatientRegistered(string name, address indexed patient, bytes32 key);
+    event PatientRegistered(
+        string name,
+        address indexed patient,
+        address smartAccount,
+        bytes32 key,
+        string pubKey
+    );
     event AccessGranted(
         address indexed patient,
         address indexed doctor,
@@ -54,10 +64,17 @@ contract MediVault {
     function registerDoctor(
         string calldata _name,
         string calldata _institution,
-        string calldata _department
+        string calldata _department,
+        address doctor
     ) external {
         isRegisteredDoctor[msg.sender] = true;
-        emit DoctorRegistered(_name, msg.sender, _institution, _department);
+        emit DoctorRegistered(
+            _name,
+            doctor,
+            msg.sender,
+            _institution,
+            _department
+        );
     }
 
     /**
@@ -66,9 +83,10 @@ contract MediVault {
     function registerPatient(
         string calldata _name,
         address patient,
-        bytes32 _key
+        bytes32 _key,
+        string calldata _pubKey
     ) external {
-        emit PatientRegistered(_name, patient, _key);
+        emit PatientRegistered(_name, patient, msg.sender, _key, _pubKey);
     }
 
     /**
@@ -76,38 +94,34 @@ contract MediVault {
      * @param patient The patient's address.
      * @param ipfsCID The IPFS content identifier.
      * @param category The medical category (e.g., "Radiology").
-     * @param signature The doctor's cryptographic signature.
+     * @param mimeType The MIME type of the record.
+     * @param ivector The AES Initialization Vector (Base64).
+     * @param wrappedKey The RSA-wrapped AES Key (Base64).
      */
     function addRecord(
         string calldata ipfsCID,
         address patient,
-        bytes calldata signature,
-        string calldata category
+        string calldata mimeType,
+        string calldata ivector,
+        string calldata category,
+        string calldata wrappedKey
     ) external {
-        address author;
+        address author = msg.sender;
 
         //Check if the caller is the patient (via thier Smart Account)
         if (msg.sender == patient) {
             author = patient; /// Patient is adding their own record
-        } else {
-            // Recover the doctor/author from the signature if a Paymaster/Relayer called this
-            bytes32 structHash = keccak256(
-                abi.encode(
-                    RECORD_TYPEHASH,
-                    patient,
-                    keccak256(bytes(ipfsCID)),
-                    keccak256(bytes(category))
-                )
-            );
-
-            // 2. Recover the signer (the doctor)
-            author = MessageHashUtils
-                .toEthSignedMessageHash(structHash)
-                .recover(signature);
         }
-        // 1. Reconstruct the signed message hash
-
-        emit RecordAdded(patient, author, ipfsCID, category, block.timestamp);
+        emit RecordAdded(
+            patient,
+            author,
+            ipfsCID,
+            category,
+            mimeType,
+            wrappedKey,
+            ivector,
+            block.timestamp
+        );
     }
 
     /**

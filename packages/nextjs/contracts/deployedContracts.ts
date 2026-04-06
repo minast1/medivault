@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   84532: {
     MediVault: {
-      address: "0x3e99b9b86735125abe8b24f851c2c843c5f6e02a",
+      address: "0x64f361966d0ed3c5b190b7c771c856ae08237fe3",
       abi: [
         {
           type: "function",
@@ -24,12 +24,22 @@ const deployedContracts = {
               internalType: "address",
             },
             {
-              name: "signature",
-              type: "bytes",
-              internalType: "bytes",
+              name: "mimeType",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "ivector",
+              type: "string",
+              internalType: "string",
             },
             {
               name: "category",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "wrappedKey",
               type: "string",
               internalType: "string",
             },
@@ -127,6 +137,11 @@ const deployedContracts = {
               type: "string",
               internalType: "string",
             },
+            {
+              name: "doctor",
+              type: "address",
+              internalType: "address",
+            },
           ],
           outputs: [],
           stateMutability: "nonpayable",
@@ -149,6 +164,11 @@ const deployedContracts = {
               name: "_key",
               type: "bytes32",
               internalType: "bytes32",
+            },
+            {
+              name: "_pubKey",
+              type: "string",
+              internalType: "string",
             },
           ],
           outputs: [],
@@ -245,6 +265,12 @@ const deployedContracts = {
               internalType: "address",
             },
             {
+              name: "smartAccount",
+              type: "address",
+              indexed: false,
+              internalType: "address",
+            },
+            {
               name: "institution",
               type: "string",
               indexed: false,
@@ -276,10 +302,22 @@ const deployedContracts = {
               internalType: "address",
             },
             {
+              name: "smartAccount",
+              type: "address",
+              indexed: false,
+              internalType: "address",
+            },
+            {
               name: "key",
               type: "bytes32",
               indexed: false,
               internalType: "bytes32",
+            },
+            {
+              name: "pubKey",
+              type: "string",
+              indexed: false,
+              internalType: "string",
             },
           ],
           anonymous: false,
@@ -295,19 +333,37 @@ const deployedContracts = {
               internalType: "address",
             },
             {
-              name: "doctor",
+              name: "author",
               type: "address",
-              indexed: true,
+              indexed: false,
               internalType: "address",
             },
             {
               name: "ipfsCID",
               type: "string",
-              indexed: false,
+              indexed: true,
               internalType: "string",
             },
             {
               name: "description",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "mimeType",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "wrappedKey",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
+              name: "ivector",
               type: "string",
               indexed: false,
               internalType: "string",
@@ -321,36 +377,9 @@ const deployedContracts = {
           ],
           anonymous: false,
         },
-        {
-          type: "error",
-          name: "ECDSAInvalidSignature",
-          inputs: [],
-        },
-        {
-          type: "error",
-          name: "ECDSAInvalidSignatureLength",
-          inputs: [
-            {
-              name: "length",
-              type: "uint256",
-              internalType: "uint256",
-            },
-          ],
-        },
-        {
-          type: "error",
-          name: "ECDSAInvalidSignatureS",
-          inputs: [
-            {
-              name: "s",
-              type: "bytes32",
-              internalType: "bytes32",
-            },
-          ],
-        },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 39450686,
+      deployedOnBlock: 39701284,
     },
   },
 } as const;
