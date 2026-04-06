@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Label } from "../ui/label";
