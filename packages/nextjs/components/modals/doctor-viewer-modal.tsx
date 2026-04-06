@@ -1,3 +1,6 @@
+/* eslint-disable jsx-a11y/alt-text */
+
+/* eslint-disable @next/next/no-img-element */
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { AnimatePresence, motion } from "framer-motion";
