@@ -1,5 +1,5 @@
 import { ponder } from "ponder:registry";
-import { gp, patient, record } from "ponder:schema";
+import { gp, patient, permission, record } from "ponder:schema";
 import { recoverTypedDataAddress } from "viem";
 
 ponder.on("MediVault:DoctorRegistered", async ({ event, context }) => {
@@ -44,25 +44,40 @@ ponder.on("MediVault:RecordAdded", async ({ event, context }) => {
     patient,
     author,
     ipfsCID,
-    description,
+    category,
     mimeType,
-    wrappedKey,
-    ivector,
+    ephPubKey,
+    nonce,
+    description,
+    timestamp,
   } = event.args;
-  let authorAddress: string;
 
   // Determine if it's an official medical record (Verified)
   const isVerified = author.toLowerCase() !== patient.toLowerCase();
 
   await context.db.insert(record).values({
-    id: ipfsCID,
+    id: String(ipfsCID),
     patientId: patient,
     author: author,
-    category: description,
+    category,
+    description,
     mimeType,
-    wrappedKey,
-    ivector,
+    ephPubKey,
+    nonce,
     isVerified,
-    timestamp: Number(event.block.timestamp),
+    timestamp: Number(timestamp),
+  });
+});
+
+ponder.on("MediVault:AccessRequested", async ({ event, context }) => {
+  const { patient, doctor, cids, duration, reason } = event.args;
+  await context.db.insert(permission).values({
+    id: event.id,
+    patientId: patient,
+    doctorId: doctor,
+    cids,
+    expiresAt: duration,
+    reason,
+    createdAt: Date.now(),
   });
 });

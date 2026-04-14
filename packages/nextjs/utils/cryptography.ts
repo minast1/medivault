@@ -1,3 +1,5 @@
+import nacl from "tweetnacl";
+import { decodeBase64, encodeBase64 } from "tweetnacl-util";
 import { keccak256, toBytes } from "viem";
 
 /**
@@ -15,26 +17,25 @@ export async function derivePublicKeyFromAddress(address: string) {
     seedBuffer.buffer as ArrayBuffer,
     { name: "PBKDF2" },
     false,
-    ["deriveKey"],
+    ["deriveBits"],
   );
-
-  // 3. Derive the Encryption Key (Same logic for Patient & Doctor)
-  const derivedKey = await window.crypto.subtle.deriveKey(
+  // 1. Derive 32 raw bytes (Entropy for the NaCl key)
+  const derivedBits = await window.crypto.subtle.deriveBits(
     {
       name: "PBKDF2",
-      salt: new TextEncoder().encode("medivault-salt-v1"), // Keeps it app-specific
+      salt: new TextEncoder().encode("medivault-salt-v1"),
       iterations: 100000,
       hash: "SHA-256",
     },
     masterKey,
-    { name: "AES-GCM", length: 256 },
-    true,
-    ["encrypt", "decrypt"],
+    256, // 32 bytes
   );
+  // 2. Generate the NaCl KeyPair from these bits
+  const secretKey = new Uint8Array(derivedBits);
+  const keyPair = nacl.box.keyPair.fromSecretKey(secretKey);
 
-  // 4. Export the Public Key as Base64 for the contract args
-  const exportedRaw = await window.crypto.subtle.exportKey("raw", derivedKey);
-  return btoa(String.fromCharCode(...new Uint8Array(exportedRaw)));
+  // 3. Return the PUBLIC key as Base64 for the contract/database
+  return encodeBase64(keyPair.publicKey);
 }
 
 export async function derivePrivateKeyFromAddress(smartAccountAddress: string) {
@@ -46,11 +47,11 @@ export async function derivePrivateKeyFromAddress(smartAccountAddress: string) {
     seedBuffer.buffer as ArrayBuffer,
     { name: "PBKDF2" },
     false,
-    ["deriveKey"],
+    ["deriveBits"],
   );
 
-  // Derive the EXACT same key used during registration
-  return await window.crypto.subtle.deriveKey(
+  // Derive 32 raw bytes (the length needed for NaCl keys)
+  const derivedBits = await window.crypto.subtle.deriveBits(
     {
       name: "PBKDF2",
       salt: new TextEncoder().encode("medivault-salt-v1"),
@@ -58,59 +59,65 @@ export async function derivePrivateKeyFromAddress(smartAccountAddress: string) {
       hash: "SHA-256",
     },
     masterKey,
-    { name: "RSA-OAEP", hash: "SHA-256" }, // Import as RSA for decryption
-    true,
-    ["decrypt"],
+    256, // 256 bits = 32 bytes
   );
+
+  // Derive the EXACT same key used during registration
+  // Convert the derived bits into a TweetNaCl KeyPair
+  const secretKey = new Uint8Array(derivedBits);
+  const keyPair = nacl.box.keyPair.fromSecretKey(secretKey);
+
+  return keyPair;
 }
 
 export async function encryptPatientRecord(file: File, patientPublicKeyBase64: string) {
-  // A. Generate a random AES-256 key for this specific file
-  const aesKey = await window.crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt"]);
-
-  // B. Encrypt the file with AES
-  const iv = window.crypto.getRandomValues(new Uint8Array(12));
+  // 1. Prepare Data
   const fileBuffer = await file.arrayBuffer();
-  const encryptedFile = await window.crypto.subtle.encrypt({ name: "AES-GCM", iv }, aesKey, fileBuffer);
+  const fileUint8 = new Uint8Array(fileBuffer);
 
-  // C. Import the Patient's Public Key from Ponder
-  const binaryKey = Uint8Array.from(atob(patientPublicKeyBase64.trim()), c => c.charCodeAt(0));
+  // 2. Decode Patient Public Key (32 bytes)
+  const patientUint8 = decodeBase64(patientPublicKeyBase64.trim());
 
-  const publicKey = await window.crypto.subtle.importKey(
-    "spki",
-    binaryKey,
-    { name: "RSA-OAEP", hash: "SHA-256" },
-    false,
-    ["encrypt"],
-  );
+  // 3. Generate Ephemeral Key Pair (Doctor's temporary keys)
+  const ephemeralKeyPair = nacl.box.keyPair();
 
-  // D. "Wrap" the AES key with the Patient's Public Key
-  const exportedAesKey = await window.crypto.subtle.exportKey("raw", aesKey);
-  const wrappedKey = await window.crypto.subtle.encrypt({ name: "RSA-OAEP" }, publicKey, exportedAesKey);
+  // 4. Generate a Nonce (Unique IV - 24 bytes for NaCl)
+  const nonce = nacl.randomBytes(nacl.box.nonceLength);
+
+  // 5. Encrypt (Seal the box)
+  // This uses the Doctor's Private + Patient's Public to create a shared secret
+  const encryptedFile = nacl.box(fileUint8, nonce, patientUint8, ephemeralKeyPair.secretKey);
 
   return {
-    encryptedFileData: new Uint8Array(encryptedFile),
-    iv: btoa(String.fromCharCode(...iv)),
-    wrappedKey: btoa(String.fromCharCode(...new Uint8Array(wrappedKey))),
+    encryptedFileData: encodeBase64(encryptedFile),
+    ephemeralPublicKeyBase64: encodeBase64(ephemeralKeyPair.publicKey),
+    nonceBase64: encodeBase64(nonce),
   };
 }
 
-export async function unwrapAESKey(wrappedKeyBase64: string, privateKey: CryptoKey) {
-  const encryptedBuffer = Uint8Array.from(atob(wrappedKeyBase64), c => c.charCodeAt(0));
+// export async function unwrapAESKey(wrappedKeyBase64: string, privateKey: CryptoKey) {
+//   const encryptedBuffer = Uint8Array.from(atob(wrappedKeyBase64), c => c.charCodeAt(0));
 
-  const decryptedRaw = await window.crypto.subtle.decrypt({ name: "RSA-OAEP" }, privateKey, encryptedBuffer);
+//   const decryptedRaw = await window.crypto.subtle.decrypt({ name: "RSA-OAEP" }, privateKey, encryptedBuffer);
 
-  return await window.crypto.subtle.importKey("raw", decryptedRaw, { name: "AES-GCM", length: 256 }, false, [
-    "decrypt",
-  ]);
-}
+//   return await window.crypto.subtle.importKey("raw", decryptedRaw, { name: "AES-GCM", length: 256 }, false, [
+//     "decrypt",
+//   ]);
+// }
 
-export async function decryptMedicalFile(encryptedBlob: Blob, aesKey: CryptoKey, ivBase64: string) {
-  const iv = Uint8Array.from(atob(ivBase64), c => c.charCodeAt(0));
-  const arrayBuffer = await encryptedBlob.arrayBuffer();
+export async function decryptMedicalFile(
+  encryptedFileData: any,
+  nonceBase64: string,
+  ephPubKey: string,
+  smAccAdd: string,
+) {
+  //const encryptedBuffer = await response.arrayBuffer();  Do this outside the function with the response from ipfs
+  const encryptedUint8 = new Uint8Array(encryptedFileData); //should be the encryptedBuffer
 
-  const decryptedBuffer = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv }, aesKey, arrayBuffer);
-
-  // Create a URL for the browser to display (e.g., in an <img> or <iframe>)
-  return new Blob([decryptedBuffer], { type: "application/pdf" }); // or image/jpeg
+  const nonce = decodeBase64(nonceBase64);
+  const ephemeralPubKey = decodeBase64(ephPubKey);
+  const keyPair = await derivePrivateKeyFromAddress(smAccAdd);
+  const decryptedUint8 = nacl.box.open(encryptedUint8, nonce, ephemeralPubKey, keyPair.secretKey);
+  if (decryptedUint8 === null) return null;
+  return decryptedUint8;
 }

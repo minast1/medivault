@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAppKitAccount } from "@reown/appkit/react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -20,7 +21,7 @@ import { NextPage } from "next";
 import { useQuery } from "urql";
 //import { useDebounce } from "use-debounce";
 import CardInput from "~~/components/CardInput";
-import { DoctorRequestModal } from "~~/components/modals/doctor-request-modal";
+//import { DoctorRequestModal } from "~~/components/modals/doctor-request-modal";
 import { DoctorUploadModal } from "~~/components/modals/doctor-upload-modal";
 //import { RecordViewerModal } from "~~/components/modals/doctor-viewer-modal";
 import { Button } from "~~/components/ui/button";
@@ -33,10 +34,11 @@ const DoctorDashboard: NextPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   //const [debouncedId] = useDebounce(searchQuery, 500);
   const [uploadOpen, setUploadOpen] = useState(false);
-  const [requestOpen, setRequestOpen] = useState(false);
+  //const [requestOpen, setRequestOpen] = useState(false);
   const [requests] = useState<AccessRequest[]>(accessRequests);
   const [, setViewingRequest] = useState<AccessRequest | null>(null);
   const { address, embeddedWalletInfo } = useAppKitAccount();
+  const router = useRouter();
 
   const [{ data: doctor }] = useQuery({
     query: GET_DOCTOR_QUERY,
@@ -52,7 +54,7 @@ const DoctorDashboard: NextPage = () => {
     query: SEARCH_PATIENT_QUERY,
     variables: { cardHash: generateCardFingerprint(searchQuery) },
     pause: true, //debouncedId.length < 10,
-    //requestPolicy: "cache-and-network",
+    // requestPolicy: "cache-and-network",
   });
 
   const foundPatient = patientData ? patientData.patients.items[0] : null;
@@ -60,6 +62,10 @@ const DoctorDashboard: NextPage = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatGhanaCard(e.target.value);
     setSearchQuery(formatted);
+  };
+
+  const handleSuccess = () => {
+    reexecuteQuery({ requestPolicy: "network-only" });
   };
 
   const approvals = requests.filter(r => r.status === "approved");
@@ -103,56 +109,61 @@ const DoctorDashboard: NextPage = () => {
             {"No patient found with this Ghana Card ID"}
           </motion.div>
         )}
-      </div>
-      <AnimatePresence>
-        {foundPatient && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="mt-4 border rounded-xl p-5 bg-muted/90 shadow-xs"
-          >
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm shrink-0">
-                  <User className="w-6 h-6" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-lg">{foundPatient.name}</h3>
-                  <div className="space-y-1 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="w-3.5 h-3.5" />
-                      {foundPatient.cardHash}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <User className="w-3.5 h-3.5" />
-                      {foundPatient.did}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-3.5 h-3.5" />
-                      {embeddedWalletInfo ? embeddedWalletInfo?.user?.email : ""}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Files className="w-3.5 h-3.5" />
-                      {foundPatient.records.totalCount} files uploaded
+        <AnimatePresence>
+          {foundPatient && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="mt-4 border rounded-xl p-5 bg-muted/30 shadow-xs"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm shrink-0">
+                    <User className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg">{foundPatient.name}</h3>
+                    <div className="space-y-1 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="w-3.5 h-3.5" />
+                        {foundPatient.cardHash}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <User className="w-3.5 h-3.5" />
+                        {foundPatient.did}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-3.5 h-3.5" />
+                        {embeddedWalletInfo ? embeddedWalletInfo?.user?.email : ""}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Files className="w-3.5 h-3.5" />
+                        {foundPatient.records.totalCount} files uploaded
+                      </div>
                     </div>
                   </div>
                 </div>
+                <div className="flex gap-2 sm:flex-col">
+                  <Button size="sm" className="gap-1.5" onClick={() => setUploadOpen(true)}>
+                    <FileUp className="w-3.5 h-3.5" />
+                    Upload Record
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={() => router.push(`/dashboard/doctor/${foundPatient.cardHash}`)}
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    Request Access
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2 sm:flex-col">
-                <Button size="sm" className="gap-1.5" onClick={() => setUploadOpen(true)}>
-                  <FileUp className="w-3.5 h-3.5" />
-                  Upload Record
-                </Button>
-                <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setRequestOpen(true)}>
-                  <Send className="w-3.5 h-3.5" />
-                  Request Access
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Approvals Queue */}
@@ -248,8 +259,13 @@ const DoctorDashboard: NextPage = () => {
 
       {foundPatient && (
         <>
-          <DoctorUploadModal open={uploadOpen} onClose={() => setUploadOpen(false)} patient={foundPatient} />
-          <DoctorRequestModal open={requestOpen} onClose={() => setRequestOpen(false)} patient={foundPatient} />
+          <DoctorUploadModal
+            open={uploadOpen}
+            onClose={() => setUploadOpen(false)}
+            patient={foundPatient}
+            onSuccess={handleSuccess}
+          />
+          {/* <DoctorRequestModal open={requestOpen} onClose={() => setRequestOpen(false)} patient={foundPatient} /> */}
         </>
       )}
       {/* {viewingRequest && (

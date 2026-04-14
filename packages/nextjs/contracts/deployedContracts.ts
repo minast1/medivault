@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   84532: {
     MediVault: {
-      address: "0x64f361966d0ed3c5b190b7c771c856ae08237fe3",
+      address: "0x1ca1893559597132c33748a44560875bdb1f77ee",
       abi: [
         {
           type: "function",
@@ -29,7 +29,7 @@ const deployedContracts = {
               internalType: "string",
             },
             {
-              name: "ivector",
+              name: "ephPubKey",
               type: "string",
               internalType: "string",
             },
@@ -39,7 +39,12 @@ const deployedContracts = {
               internalType: "string",
             },
             {
-              name: "wrappedKey",
+              name: "description",
+              type: "string",
+              internalType: "string",
+            },
+            {
+              name: "nonce",
               type: "string",
               internalType: "string",
             },
@@ -345,6 +350,12 @@ const deployedContracts = {
               internalType: "string",
             },
             {
+              name: "category",
+              type: "string",
+              indexed: false,
+              internalType: "string",
+            },
+            {
               name: "description",
               type: "string",
               indexed: false,
@@ -357,13 +368,13 @@ const deployedContracts = {
               internalType: "string",
             },
             {
-              name: "wrappedKey",
+              name: "ephPubKey",
               type: "string",
               indexed: false,
               internalType: "string",
             },
             {
-              name: "ivector",
+              name: "nonce",
               type: "string",
               indexed: false,
               internalType: "string",
@@ -379,7 +390,7 @@ const deployedContracts = {
         },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 39701284,
+      deployedOnBlock: 39902857,
     },
   },
 } as const;

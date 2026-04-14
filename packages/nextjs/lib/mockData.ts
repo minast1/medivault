@@ -9,6 +9,15 @@ export interface MedicalRecord {
   mimeType: "application/pdf" | "image/jpeg" | "image/png" | "image/dicom" | "text/plain";
 }
 
+export const categories = [
+  "All",
+  "Lab Results",
+  "X-Ray",
+  "Prescription",
+  "Clinical Notes",
+  "Imaging",
+  "Vaccination",
+] as const;
 export interface Doctor {
   id: string;
   name: string;

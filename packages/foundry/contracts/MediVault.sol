@@ -26,10 +26,11 @@ contract MediVault {
         address indexed patient,
         address author,
         string indexed ipfsCID,
+        string category,
         string description,
         string mimeType,
-        string wrappedKey,
-        string ivector,
+        string ephPubKey,
+        string nonce,
         uint256 timestamp
     );
     event DoctorRegistered(
@@ -56,6 +57,14 @@ contract MediVault {
         address indexed patient,
         address indexed doctor,
         string ipfsCID
+    );
+
+    event AccessRequested(
+        address indexed patient,
+        address indexed doctor,
+        string[] cids,
+        uint256 duration,
+        string reason
     );
 
     /**
@@ -95,16 +104,17 @@ contract MediVault {
      * @param ipfsCID The IPFS content identifier.
      * @param category The medical category (e.g., "Radiology").
      * @param mimeType The MIME type of the record.
-     * @param ivector The AES Initialization Vector (Base64).
-     * @param wrappedKey The RSA-wrapped AES Key (Base64).
+     * @param ephPubKey The Ephemeral Public Key (Base64).
+     * @param nonce The nonce (Base64).
      */
     function addRecord(
         string calldata ipfsCID,
         address patient,
         string calldata mimeType,
-        string calldata ivector,
+        string calldata ephPubKey,
         string calldata category,
-        string calldata wrappedKey
+        string calldata description,
+        string calldata nonce
     ) external {
         address author = msg.sender;
 
@@ -117,9 +127,10 @@ contract MediVault {
             author,
             ipfsCID,
             category,
+            description,
             mimeType,
-            wrappedKey,
-            ivector,
+            ephPubKey,
+            nonce,
             block.timestamp
         );
     }
@@ -143,5 +154,15 @@ contract MediVault {
     function revokeAccess(address doctor, string calldata ipfsCID) external {
         hasAccess[msg.sender][doctor][ipfsCID] = false;
         emit AccessRevoked(msg.sender, doctor, ipfsCID);
+    }
+
+    function requestAccess(
+        address patient,
+        address doctor,
+        string[] calldata cids,
+        uint256 duration,
+        string calldata reason
+    ) external {
+        emit AccessRequested(patient, doctor, cids, duration, reason);
     }
 }
