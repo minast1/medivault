@@ -5,6 +5,7 @@ const GET_DOCTOR_QUERY = gql`
     gp(id: $id) {
       id
       institution
+      department
       name
     }
   }
@@ -20,6 +21,9 @@ const SEARCH_PATIENT_QUERY = gql`
         name
         cardHash
         records {
+          items {
+            id
+          }
           totalCount
         }
       }
@@ -53,6 +57,26 @@ export const GET_PATIENT_RECORDS_QUERY = gql`
             endCursor
           }
         }
+      }
+    }
+  }
+`;
+
+export const GET_ACCESS_REQUESTS_QUERY = gql`
+  query GetAccessRequests {
+    # Query the join table instead of the parent permission table
+    permissionRecords(orderBy: "permissionId", orderDirection: "desc") {
+      items {
+        status
+        duration
+        # This pulls the record details for this specific entry
+        record {
+          description
+          patient {
+            name
+          }
+        }
+        # This "reaches back up" to the parent to get the shared info
       }
     }
   }

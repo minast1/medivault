@@ -1,0 +1,6 @@
+@openzeppelin/contracts/=packages/foundry/lib/openzeppelin-contracts/contracts/
+ds-test/=packages/foundry/lib/solidity-bytes-utils/lib/forge-std/lib/ds-test/src/
+erc4626-tests/=packages/foundry/lib/openzeppelin-contracts/lib/erc4626-tests/
+forge-std/=packages/foundry/lib/forge-std/src/
+halmos-cheatcodes/=packages/foundry/lib/openzeppelin-contracts/lib/halmos-cheatcodes/src/
+solidity-bytes-utils/=packages/foundry/lib/solidity-bytes-utils/contracts/

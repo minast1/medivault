@@ -10,7 +10,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, FileCheck, Lock, Shield } from "lucide-react";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
-import IdentityOverlay from "~~/components/IdentityOverlay";
+//import IdentityOverlay from "~~/components/IdentityOverlay";
 //import IdentityOverlay from "~~/components/IdentityOverlay";
 //import IdentityOverlay from "~~/components/IdentityOverlay";
 import DetailsModal from "~~/components/modals/details-modal";
@@ -49,7 +49,7 @@ const Home: NextPage = () => {
   const { isConnected } = useAppKitAccount();
 
   const { isFirstTime } = useUserStatus();
-
+  const loading = isWaiting || isPending;
   const { connect, isPending: isAuthPending } = useAppKitWallet({
     namespace: "eip155",
     onSuccess: () => {
@@ -63,7 +63,7 @@ const Home: NextPage = () => {
     },
   });
 
-  console.log({ isFirstTime });
+  //console.log({ isFirstTime });
 
   const [loginOpen, setLoginOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -120,7 +120,7 @@ const Home: NextPage = () => {
         console.warn("No wallet address found during submission");
         return;
       }
-      setDetailsOpen(false);
+
       if (loginRole === "patient" && !isPending) {
         //generate cardFingerPrint for patients
         const cardFingerPrint = generateCardFingerprint(cardId as string);
@@ -246,10 +246,10 @@ const Home: NextPage = () => {
           open={detailsOpen}
           onClose={() => setDetailsOpen(false)}
           role={loginRole}
-          //isWaiting={isPending}
+          isLoading={loading}
           onRegister={handleDataCaptured}
         />
-        <IdentityOverlay visible={isWaiting} />
+        {/* <IdentityOverlay visible={isWaiting} /> */}
       </section>
     </>
   );

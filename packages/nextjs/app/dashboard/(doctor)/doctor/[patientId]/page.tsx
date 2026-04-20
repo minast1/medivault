@@ -4,8 +4,20 @@ import React, { use, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, CalendarIcon, CheckCircle2, Filter, Search, Send } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  CalendarIcon,
+  CheckCircle2,
+  Clock,
+  Filter,
+  Loader2,
+  Search,
+  Send,
+  Zap,
+} from "lucide-react";
 import { useQuery } from "urql";
+import { useAccount } from "wagmi";
 import { Badge } from "~~/components/ui/badge";
 import { Button } from "~~/components/ui/button";
 import { Calendar } from "~~/components/ui/calendar";
@@ -18,7 +30,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~~/components/ui/table";
 import { Textarea } from "~~/components/ui/textarea";
 import { GET_PATIENT_RECORDS_QUERY } from "~~/graphql/queries/doctor";
-import { categories, categoryColors } from "~~/lib/mockData";
+import { useDeployedContractInfo } from "~~/hooks/scaffold-eth";
+import useGasslessTxn from "~~/hooks/useGasslessTxn";
+import { URGENCY_MAP, categories, categoryColors } from "~~/lib/mockData";
 import { cn } from "~~/lib/utils";
 
 const ITEMS_PER_PAGE = 10;
@@ -26,15 +40,19 @@ export default function QueryPatientPage({ params }: { params: Promise<{ patient
   const { patientId } = use(params);
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-
+  const [urgency, setUrgency] = useState<"routine" | "urgent" | "critical">("routine");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [requestOpen, setRequestOpen] = useState(false);
-  const [duration, setDuration] = useState("");
+  const [duration, setDuration] = useState("3600");
   const [reason, setReason] = useState("");
+  const { data: vaultContract } = useDeployedContractInfo({ contractName: "MediVault" });
+  const { address } = useAccount();
+
+  const { sendTx, isPending, isWaiting } = useGasslessTxn(vaultContract?.address, vaultContract?.abi, undefined);
   const [sent, setSent] = useState(false);
 
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -122,17 +140,19 @@ export default function QueryPatientPage({ params }: { params: Promise<{ patient
 
   const allChecked = paginated.length > 0 && paginated.every((r: any) => selectedIds.has(r.id));
 
-  const handleSendRequest = () => {
+  const handleSendRequest = async () => {
     if (selectedIds.size === 0 || !duration) return;
+    const urg = URGENCY_MAP[urgency];
+    await sendTx("requestAccess", [
+      patient.id,
+      address,
+      Array.from(selectedIds),
+      BigInt(Number(duration)),
+      reason,
+      urg,
+    ]);
+    //console.log({ selectedIds, duration: BigInt(Number(duration)), reason });
     setSent(true);
-    console.log({ selectedIds, duration, reason });
-    setTimeout(() => {
-      setSent(false);
-      setSelectedIds(new Set());
-      setDuration("");
-      setReason("");
-      setRequestOpen(false);
-    }, 2000);
   };
 
   const clearFilters = () => {
@@ -372,6 +392,7 @@ export default function QueryPatientPage({ params }: { params: Promise<{ patient
       </div>
       <Dialog
         open={requestOpen}
+        modal={false}
         onOpenChange={v => {
           if (!v) {
             setRequestOpen(false);
@@ -425,13 +446,54 @@ export default function QueryPatientPage({ params }: { params: Promise<{ patient
                     <SelectValue placeholder="Select duration" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1h">1 Hour</SelectItem>
-                    <SelectItem value="24h">24 Hours</SelectItem>
-                    <SelectItem value="48h">48 Hours</SelectItem>
-                    <SelectItem value="7d">7 Days</SelectItem>
-                    <SelectItem value="30d">30 Days</SelectItem>
+                    <SelectItem value="3600">1 Hour</SelectItem>
+                    <SelectItem value="86400">24 Hours</SelectItem>
+                    <SelectItem value="172800">48 Hours</SelectItem>
+                    <SelectItem value="604800">7 Days</SelectItem>
+                    <SelectItem value="2592000">30 Days</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Urgency Level</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    {
+                      value: "routine" as const,
+                      label: "Routine",
+                      icon: Clock,
+                      color: "border-muted-foreground/30 text-muted-foreground hover:border-primary/40",
+                      activeColor: "border-primary bg-primary/5 text-primary",
+                    },
+                    {
+                      value: "urgent" as const,
+                      label: "Urgent",
+                      icon: Zap,
+                      color: "border-muted-foreground/30 text-amber-600 hover:border-amber-400",
+                      activeColor: "border-amber-500 bg-amber-500/10 text-amber-600",
+                    },
+                    {
+                      value: "critical" as const,
+                      label: "Critical",
+                      icon: AlertTriangle,
+                      color: "border-muted-foreground/30 text-destructive hover:border-destructive/40",
+                      activeColor: "border-destructive bg-destructive/5 text-destructive",
+                    },
+                  ].map(level => (
+                    <button
+                      key={level.value}
+                      type="button"
+                      onClick={() => setUrgency(level.value)}
+                      className={cn(
+                        "flex flex-col items-center gap-1.5 rounded-lg border-2 py-2.5 px-2 text-xs font-medium transition-all",
+                        urgency === level.value ? level.activeColor : level.color,
+                      )}
+                    >
+                      <level.icon className="w-4 h-4" />
+                      {level.label}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Reason (optional)</Label>
@@ -443,8 +505,17 @@ export default function QueryPatientPage({ params }: { params: Promise<{ patient
                 />
               </div>
               <Button className="w-full gap-2" disabled={!duration} onClick={handleSendRequest}>
-                <Send className="w-4 h-4" />
-                Send Request
+                {isPending || isWaiting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Processing Request
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>Send Request</span>
+                  </>
+                )}
               </Button>
             </div>
           )}

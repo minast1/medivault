@@ -5,6 +5,7 @@ libs = ['lib', 'node_modules']
 fs_permissions = [{ access = "read-write", path = "./"}]
 via_ir = true
 optimizer = true
+solc = "0.8.26"
 
 [rpc_endpoints]
 default_network = "http://127.0.0.1:8545"

@@ -9,6 +9,12 @@ export interface MedicalRecord {
   mimeType: "application/pdf" | "image/jpeg" | "image/png" | "image/dicom" | "text/plain";
 }
 
+export const URGENCY_MAP = {
+  routine: 0,
+  urgent: 1,
+  critical: 2,
+} as const;
+
 export const categories = [
   "All",
   "Lab Results",

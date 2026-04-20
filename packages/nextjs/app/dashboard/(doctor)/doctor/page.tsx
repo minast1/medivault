@@ -25,18 +25,31 @@ import CardInput from "~~/components/CardInput";
 import { DoctorUploadModal } from "~~/components/modals/doctor-upload-modal";
 //import { RecordViewerModal } from "~~/components/modals/doctor-viewer-modal";
 import { Button } from "~~/components/ui/button";
-import { GET_DOCTOR_QUERY, SEARCH_PATIENT_QUERY } from "~~/graphql/queries/doctor";
-import { type AccessRequest, accessRequests } from "~~/lib/mockData";
+import { GET_ACCESS_REQUESTS_QUERY, GET_DOCTOR_QUERY, SEARCH_PATIENT_QUERY } from "~~/graphql/queries/doctor";
 import { formatGhanaCard } from "~~/utils/format-card";
 import { generateCardFingerprint } from "~~/utils/generate-card-fingerprint";
 
+type TRecord = {
+  id: string;
+  status: "pending" | "granted" | "revoked";
+  duration: bigint;
+
+  record: {
+    description: string;
+    patient: {
+      name: string;
+    };
+  };
+};
 const DoctorDashboard: NextPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  //const [debouncedId] = useDebounce(searchQuery, 500);
+  const [shouldRefetch, setShouldRefetch] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [done, setDone] = useState(false);
   //const [requestOpen, setRequestOpen] = useState(false);
-  const [requests] = useState<AccessRequest[]>(accessRequests);
-  const [, setViewingRequest] = useState<AccessRequest | null>(null);
+
+  // const [, setViewingRequest] = useState<AccessRequest | null>(null);
   const { address, embeddedWalletInfo } = useAppKitAccount();
   const router = useRouter();
 
@@ -50,13 +63,17 @@ const DoctorDashboard: NextPage = () => {
   });
 
   //const shooou = debouncedId.startsWith("GHA-") && debouncedId.length >= 10;
-  const [{ data: patientData, fetching }, reexecuteQuery] = useQuery({
+  const [{ data: patientData }, reexecuteQuery] = useQuery({
     query: SEARCH_PATIENT_QUERY,
     variables: { cardHash: generateCardFingerprint(searchQuery) },
-    pause: true, //debouncedId.length < 10,
-    // requestPolicy: "cache-and-network",
+    pause: !shouldRefetch, //debouncedId.length < 10,
+    requestPolicy: "cache-only",
   });
 
+  const [{ data: requestPermissions }] = useQuery({
+    query: GET_ACCESS_REQUESTS_QUERY,
+  });
+  console.log(requestPermissions);
   const foundPatient = patientData ? patientData.patients.items[0] : null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,18 +82,20 @@ const DoctorDashboard: NextPage = () => {
   };
 
   const handleSuccess = () => {
-    reexecuteQuery({ requestPolicy: "network-only" });
+    setShouldRefetch(true);
+    setDone(true);
   };
+  const requests: TRecord[] = requestPermissions ? requestPermissions.permissionRecords.items : null;
+  const approvals = requests ? requests.filter(r => r.status === "granted") : [];
+  const pending = requests ? requests.filter(r => r.status === "pending") : [];
 
-  const approvals = requests.filter(r => r.status === "approved");
-  const pending = requests.filter(r => r.status === "pending");
-
-  //  console.log(doctor);
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{doctor?.gp.name}</h1>
-        <p className="text-sm text-muted-foreground mt-1 captialize">{doctor?.gp.institution}</p>
+        <p className="text-sm text-muted-foreground mt-1 captialize">
+          {doctor?.gp.department + " . " + doctor?.gp.institution}
+        </p>
       </div>
 
       {/* Patient Search */}
@@ -93,13 +112,20 @@ const DoctorDashboard: NextPage = () => {
             // onKeyDown={handleKeyDown}
             className="max-w-sm font-mono"
           />
-          <Button onClick={reexecuteQuery} className="gap-1.5">
+          <Button
+            onClick={() => {
+              setShouldRefetch(true);
+              setHasSearched(true);
+              reexecuteQuery({ requestPolicy: "network-only" });
+            }}
+            className="gap-1.5"
+          >
             <Search className="w-4 h-4" />
             Search
           </Button>
         </div>
 
-        {!foundPatient && !fetching && (
+        {(!patientData || patientData?.patients.items.length == 0) && hasSearched && (
           <motion.div
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
@@ -139,7 +165,7 @@ const DoctorDashboard: NextPage = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <Files className="w-3.5 h-3.5" />
-                        {foundPatient.records.totalCount} files uploaded
+                        {foundPatient.records.items.length} files uploaded
                       </div>
                     </div>
                   </div>
@@ -181,7 +207,7 @@ const DoctorDashboard: NextPage = () => {
             {approvals.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground text-sm">No approved requests</div>
             ) : (
-              approvals.map((r, i) => (
+              approvals?.map((r, i) => (
                 <motion.div
                   key={r.id}
                   initial={{ opacity: 0 }}
@@ -190,11 +216,11 @@ const DoctorDashboard: NextPage = () => {
                   className="px-5 py-3.5 flex items-center justify-between"
                 >
                   <div className="min-w-0">
-                    <div className="text-sm font-medium">{r.patientName}</div>
-                    <div className="text-xs text-muted-foreground">{r.recordName}</div>
+                    <div className="text-sm font-medium">{r.record.patient.name}</div>
+                    <div className="text-xs text-muted-foreground">{r.record.description}</div>
                     <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                       <Clock className="w-3 h-3" />
-                      Duration: {r.duration}
+                      Duration: {r.duration} {/* this is the actual duration to expiry*/}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -202,7 +228,7 @@ const DoctorDashboard: NextPage = () => {
                       size="sm"
                       variant="outline"
                       className="gap-1 text-xs h-7"
-                      onClick={() => setViewingRequest(r)}
+                      //onClick={() => setViewingRequest(r)}
                     >
                       <Eye className="w-3 h-3" />
                       View
@@ -230,10 +256,10 @@ const DoctorDashboard: NextPage = () => {
             </div>
           </div>
           <div className="divide-y max-h-[320px] overflow-y-auto">
-            {pending.length === 0 ? (
+            {pending && pending.length === 0 ? (
               <div className="p-8 text-center text-muted-foreground text-sm">No pending requests</div>
             ) : (
-              pending.map((r, i) => (
+              pending?.map((r, i) => (
                 <motion.div
                   key={r.id}
                   initial={{ opacity: 0 }}
@@ -242,13 +268,14 @@ const DoctorDashboard: NextPage = () => {
                   className="px-5 py-3.5 flex items-center justify-between"
                 >
                   <div className="min-w-0">
-                    <div className="text-sm font-medium">{r.patientName}</div>
-                    <div className="text-xs text-muted-foreground">{r.recordName}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">{r.requestedAt}</div>
+                    <div className="text-sm font-medium">{r.record.patient.name}</div>
+                    <div className="text-xs text-muted-foreground">{r.record.description}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">{r.duration}</div>{" "}
+                    {/* TODO: add created at to the permissionRecords table for this */}
                   </div>
-                  <span className="text-xs px-2 py-1 rounded-full bg-warning/10 text-warning font-medium flex items-center gap-1">
+                  <span className="text-xs px-2 py-1 rounded-full capitalize bg-warning/10 text-warning font-medium flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" />
-                    Pending
+                    {r.status}
                   </span>
                 </motion.div>
               ))
@@ -261,7 +288,12 @@ const DoctorDashboard: NextPage = () => {
         <>
           <DoctorUploadModal
             open={uploadOpen}
-            onClose={() => setUploadOpen(false)}
+            done={done}
+            onClose={() => {
+              setDone(false);
+              reexecuteQuery({ requestPolicy: "network-only" });
+              setUploadOpen(false);
+            }}
             patient={foundPatient}
             onSuccess={handleSuccess}
           />

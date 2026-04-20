@@ -1,5 +1,12 @@
 import { ponder } from "ponder:registry";
-import { gp, patient, permission, record } from "ponder:schema";
+import { SchemaEncoder } from '@ethereum-attestation-service/eas-sdk';
+import {
+  gp,
+  patient,
+  permission,
+  permissionRecord,
+  record,
+} from "ponder:schema";
 import { recoverTypedDataAddress } from "viem";
 
 ponder.on("MediVault:DoctorRegistered", async ({ event, context }) => {
@@ -70,14 +77,54 @@ ponder.on("MediVault:RecordAdded", async ({ event, context }) => {
 });
 
 ponder.on("MediVault:AccessRequested", async ({ event, context }) => {
-  const { patient, doctor, cids, duration, reason } = event.args;
+  const { patient, doctor, cids, duration, reason, urgency } = event.args;
+  const permissionId = event.id;
+
   await context.db.insert(permission).values({
-    id: event.id,
+    id: permissionId,
     patientId: patient,
     doctorId: doctor,
     cids,
-    expiresAt: duration,
     reason,
-    createdAt: Date.now(),
+
+    createdAt: Math.floor(Date.now() / 1000),
   });
+
+  for (const cid of cids) {
+    await context.db.insert(permissionRecord).values({
+      id: `${permissionId}-${cid}`,
+      permissionId: doctor,
+      recordId: String(cid),
+      duration: Number(duration),
+      status: "pending",
+      urgency: Number(urgency),
+    });
+  }
+});
+
+ponder.on("EAS:Attested", async ({ event, context }) => {
+  const schemaEncoder = new SchemaEncoder("bytes32 ipfsCID, address patient, address doctor, uint64 expiration");
+  const decodedData = schemaEncoder.decodeData(event.args.data);
+  const cid = decodedData.find((val) => val.name === "ipfsCID")?.value.value as string;
+  const patient = decodedData.find((val) => val.name === "patient")?.value.value;
+  const doctor = decodedData.find((val) => val.name === "doctor")?.value.value;
+  const expiration = decodedData.find((val) => val.name === "expiration")?.value.value as bigint;
+  //const permisssionId = event.id;
+
+
+  const item = await context.db.sql.query.permissionRecord.findFirst({
+    where: (fields, { eq, and }) =>
+      and(eq(fields.recordId, cid), eq(fields.status, "pending"), eq(fields.permissionId, String(doctor))),
+    with: {
+      permission: true,
+    },
+  });
+
+  if (item && item.permission.patientId === patient) {
+    await context.db.update(permissionRecord, { id: item.id }).set({
+      status: "granted",
+      duration: Number(BigInt(Math.floor(Date.now() / 1000)) + expiration),
+    });
+  }
+
 });

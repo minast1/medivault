@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useDisconnect } from "@reown/appkit/react";
 import { createSmartAccountClient } from "permissionless";
 import { toSafeSmartAccount } from "permissionless/accounts";
 import { createPimlicoClient } from "permissionless/clients/pimlico";
@@ -20,7 +21,7 @@ const useGasslessTxn = (
   const [isPending, setIsPending] = useState(false);
   const [isWaiting, setIsWaiting] = useState(false);
   const { data: walletClient } = useWalletClient();
-
+  const { disconnect } = useDisconnect();
   const sendTx = useCallback(
     async (functionName: string, args: any[]) => {
       if (!walletClient?.account || !contractAddress || !abi || !publicClient) {
@@ -91,7 +92,7 @@ const useGasslessTxn = (
         setIsPending(false);
         setIsWaiting(true);
 
-        await publicClient.waitForTransactionReceipt({ hash });
+        await publicClient.waitForTransactionReceipt({ hash, timeout: 120000 });
 
         if (actionType === "register") {
           // Small delay to let the "Vault Ready" animation finish
@@ -106,6 +107,7 @@ const useGasslessTxn = (
       } catch (error: any) {
         setIsPending(false);
         setIsWaiting(false);
+        await disconnect({ namespace: "eip155" });
         console.error("Gasless Tx Failed:", error);
 
         // 3. Robust Error Handling
@@ -120,7 +122,8 @@ const useGasslessTxn = (
         }
       }
     },
-    [contractAddress, abi, userRole, router, walletClient, publicClient, actionType],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [walletClient, contractAddress, abi, publicClient, actionType, userRole, router],
   );
 
   return {

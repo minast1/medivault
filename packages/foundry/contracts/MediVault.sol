@@ -14,13 +14,11 @@ contract MediVault {
     // We only store the "Consent Status" to allow the contract to
     // verify permissions for on-chain logic if needed.
     // Mapping: Patient => Doctor => RecordCID => IsActive
-    mapping(address => mapping(address => mapping(string => bool)))
-        public hasAccess;
+
     mapping(address => bool) public isRegisteredDoctor;
 
     // This "Typehash" defines the structure for EIP-712 signing
-    bytes32 private constant RECORD_TYPEHASH =
-        keccak256("Record(address patient,string ipfsCID,string category)");
+    bytes32 private constant RECORD_TYPEHASH = keccak256("Record(address patient,string ipfsCID,string category)");
 
     event RecordAdded(
         address indexed patient,
@@ -33,38 +31,16 @@ contract MediVault {
         string nonce,
         uint256 timestamp
     );
+
     event DoctorRegistered(
-        string name,
-        address indexed doctor,
-        address smartAccount,
-        string institution,
-        string department
+        string name, address indexed doctor, address smartAccount, string institution, string department
     );
-    event PatientRegistered(
-        string name,
-        address indexed patient,
-        address smartAccount,
-        bytes32 key,
-        string pubKey
-    );
-    event AccessGranted(
-        address indexed patient,
-        address indexed doctor,
-        string ipfsCID,
-        uint256 timestamp
-    );
-    event AccessRevoked(
-        address indexed patient,
-        address indexed doctor,
-        string ipfsCID
-    );
+    event PatientRegistered(string name, address indexed patient, address smartAccount, bytes32 key, string pubKey);
+    event AccessGranted(address indexed patient, address indexed doctor, string[] ipfsCIDs, uint256 timestamp);
+    event AccessRevoked(address indexed patient, address indexed doctor, string ipfsCID);
 
     event AccessRequested(
-        address indexed patient,
-        address indexed doctor,
-        string[] cids,
-        uint256 duration,
-        string reason
+        address indexed patient, address indexed doctor, string[] cids, uint256 duration, string reason, uint8 urgency
     );
 
     /**
@@ -77,24 +53,13 @@ contract MediVault {
         address doctor
     ) external {
         isRegisteredDoctor[msg.sender] = true;
-        emit DoctorRegistered(
-            _name,
-            doctor,
-            msg.sender,
-            _institution,
-            _department
-        );
+        emit DoctorRegistered(_name, doctor, msg.sender, _institution, _department);
     }
 
     /**
      * @notice Registers a patient account.
      */
-    function registerPatient(
-        string calldata _name,
-        address patient,
-        bytes32 _key,
-        string calldata _pubKey
-    ) external {
+    function registerPatient(string calldata _name, address patient, bytes32 _key, string calldata _pubKey) external {
         emit PatientRegistered(_name, patient, msg.sender, _key, _pubKey);
     }
 
@@ -122,37 +87,22 @@ contract MediVault {
         if (msg.sender == patient) {
             author = patient; /// Patient is adding their own record
         }
-        emit RecordAdded(
-            patient,
-            author,
-            ipfsCID,
-            category,
-            description,
-            mimeType,
-            ephPubKey,
-            nonce,
-            block.timestamp
-        );
+        emit RecordAdded(patient, author, ipfsCID, category, description, mimeType, ephPubKey, nonce, block.timestamp);
     }
 
     /**
      * @notice Grants a doctor access to a specific record.
      */
-    function grantAccess(
-        address doctor,
-        string calldata ipfsCID,
-        uint256 duration
-    ) external {
-        hasAccess[msg.sender][doctor][ipfsCID] = true;
+    function grantAccess(address doctor, string[] calldata ipfsCIDs, uint256 duration) external {
         uint256 expiresAt = block.timestamp + duration;
-        emit AccessGranted(msg.sender, doctor, ipfsCID, expiresAt);
+        emit AccessGranted(msg.sender, doctor, ipfsCIDs, expiresAt);
     }
 
     /**
      * @notice Revokes a doctor's access.
      */
     function revokeAccess(address doctor, string calldata ipfsCID) external {
-        hasAccess[msg.sender][doctor][ipfsCID] = false;
+        //hasAccess[msg.sender][doctor][ipfsCID] = false;
         emit AccessRevoked(msg.sender, doctor, ipfsCID);
     }
 
@@ -161,8 +111,9 @@ contract MediVault {
         address doctor,
         string[] calldata cids,
         uint256 duration,
-        string calldata reason
+        string calldata reason,
+        uint8 urgency
     ) external {
-        emit AccessRequested(patient, doctor, cids, duration, reason);
+        emit AccessRequested(patient, doctor, cids, duration, reason, urgency);
     }
 }

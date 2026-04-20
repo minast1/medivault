@@ -1,4 +1,10 @@
-import { index, onchainEnum, onchainTable, relations } from "ponder";
+import {
+  index,
+  onchainEnum,
+  onchainTable,
+  primaryKey,
+  relations,
+} from "ponder";
 
 /**
  * Patients: The primary entity for Web2-style profiles.
@@ -41,7 +47,7 @@ export const gp = onchainTable("gps", (t) => ({
 //  */
 export const record = onchainTable("record", (t) => ({
   id: t.text().primaryKey(), // IPFS CID
-  patientId: t.text().notNull(), // The vault owner
+  patientId: t.hex().notNull(), // The vault owner
   author: t.hex().notNull(), // The actual signer/creator
   category: t.text().notNull(),
   mimeType: t.text().notNull(),
@@ -66,10 +72,39 @@ export const permission = onchainTable("permission", (t) => ({
   patientId: t.hex().notNull(),
   doctorId: t.text().notNull(),
   cids: t.text().array(), //Stored as JSON stringified array
-  expiresAt: t.integer(),
-  status: permissionStatus("pending"),
+  reason: t.text(),
   createdAt: t.integer().notNull(),
 }));
+
+export const permissionRecord = onchainTable(
+  "permission_record",
+  (t) => ({
+    id: t.text().primaryKey(),
+    permissionId: t.text().notNull(),
+    recordId: t.text().notNull(),
+    duration: t.integer(),
+    status: permissionStatus("pending"),
+    urgency: t.integer(),
+    attestationUid: t.text(),
+  }),
+  // (table) => ({
+  //   pk: primaryKey({ columns: [table.permissionId, table.recordId] }),
+  // }),
+);
+
+export const permissionRecordRelations = relations(
+  permissionRecord,
+  ({ one }) => ({
+    permission: one(permission, {
+      fields: [permissionRecord.permissionId],
+      references: [permission.id],
+    }),
+    record: one(record, {
+      fields: [permissionRecord.recordId],
+      references: [record.id],
+    }),
+  }),
+);
 
 // // Define Relationships for GraphQL Efficiency
 export const patientRelations = relations(patient, ({ many }) => ({
@@ -77,7 +112,7 @@ export const patientRelations = relations(patient, ({ many }) => ({
   grantedPermissions: many(permission),
 }));
 
-export const recordRelations = relations(record, ({ one }) => ({
+export const recordRelations = relations(record, ({ one, many }) => ({
   patient: one(patient, {
     fields: [record.patientId],
     references: [patient.id],
@@ -87,17 +122,17 @@ export const recordRelations = relations(record, ({ one }) => ({
     fields: [record.author],
     references: [gp.smartAccount],
   }),
+
+  permission: many(permissionRecord),
 }));
 
-export const permissionRelations = relations(permission, ({ one }) => ({
+export const permissionRelations = relations(permission, ({ one, many }) => ({
   patient: one(patient, {
     fields: [permission.patientId],
     references: [patient.id],
   }),
-  doctor: one(gp, {
-    fields: [permission.doctorId],
-    references: [gp.id],
-  }),
+  doctor: one(gp, { fields: [permission.doctorId], references: [gp.id] }),
+  records: many(permissionRecord),
 }));
 
 export const gpRelations = relations(gp, ({ many }) => ({

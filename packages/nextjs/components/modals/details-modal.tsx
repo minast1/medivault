@@ -10,6 +10,7 @@ import { Input } from "~~/components/ui/input";
 type TProps = {
   open: boolean;
   onClose: () => void;
+  isLoading: boolean;
   // isWaiting: boolean;
   role: string | undefined;
 
@@ -39,7 +40,7 @@ type FormState = {
 const baseSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
 });
-const DetailsModal = ({ open, onClose, role, onRegister }: TProps) => {
+const DetailsModal = ({ open, onClose, role, onRegister, isLoading }: TProps) => {
   const handleSubmission = async (prevState: FormState, formData: FormData): Promise<FormState> => {
     const data =
       role === "doctor"
@@ -126,7 +127,7 @@ const DetailsModal = ({ open, onClose, role, onRegister }: TProps) => {
   };
   //console.log(value);
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onClose} modal={false}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <div className="flex items-center justify-center mb-2">
@@ -185,8 +186,8 @@ const DetailsModal = ({ open, onClose, role, onRegister }: TProps) => {
             </>
           )}
 
-          <Button className="w-full gap-2 h-11">
-            {isPending ? (
+          <Button className="w-full gap-2 h-11" disabled={isLoading || isPending}>
+            {isLoading || isPending ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" /> Loading..{" "}
               </>

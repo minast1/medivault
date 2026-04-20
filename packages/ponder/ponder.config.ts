@@ -1,4 +1,5 @@
 import { createConfig } from "ponder";
+import { parseAbi } from "viem";
 import deployedContracts from "../nextjs/contracts/deployedContracts";
 import scaffoldConfig from "../nextjs/scaffold.config";
 
@@ -35,7 +36,8 @@ const contracts = Object.fromEntries(
   }),
 );
 
+
 export default createConfig({
   chains: chains,
-  contracts: contracts,
+  contracts,
 });

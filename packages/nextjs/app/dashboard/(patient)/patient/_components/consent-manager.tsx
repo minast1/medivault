@@ -63,6 +63,8 @@ const activeConsents: ActiveConsent[] = [
     grantedAt: "2 days ago",
   },
 ];
+//const schemaUID = "0x2678a919b78b7bc41645ee599ea61e25ac7b6835cd063f2555cc838a7b4383a8";
+//const easContractAddress = "0x4200000000000000000000000000000000000021";
 
 const ConsentManager = () => {
   const [pending, setPending] = useState(pendingConsents);

@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { motion } from "framer-motion";
-import { FileText, FileType, FileUp, ImageIcon, Lock, X } from "lucide-react";
+import { CheckCircle2, FileText, FileType, FileUp, ImageIcon, Lock, X } from "lucide-react";
 import { Button } from "~~/components/ui/button";
 import { Input } from "~~/components/ui/input";
 import { useDeployedContractInfo } from "~~/hooks/scaffold-eth";
@@ -12,11 +12,13 @@ import useGasslessTxn from "~~/hooks/useGasslessTxn";
 import { categories } from "~~/lib/mockData";
 import { pinata } from "~~/lib/pinata";
 import { encryptPatientRecord } from "~~/utils/cryptography";
-import { notification } from "~~/utils/scaffold-eth";
+
+//import { notification } from "~~/utils/scaffold-eth";
 
 interface DoctorUploadModalProps {
   open: boolean;
   onClose: () => void;
+  done: boolean;
   patient: any;
   onSuccess: () => void;
 }
@@ -27,11 +29,11 @@ function getFileIcon(type: string) {
   return FileText;
 }
 
-export function DoctorUploadModal({ open, onClose, patient, onSuccess }: DoctorUploadModalProps) {
+export function DoctorUploadModal({ open, onClose, patient, onSuccess, done }: DoctorUploadModalProps) {
   const [fileName, setFileName] = useState("");
   const [category, setCategory] = useState("");
   const [uploading, setUploading] = useState(false);
-  //const [, setDone] = useState(false);
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -83,16 +85,18 @@ export function DoctorUploadModal({ open, onClose, patient, onSuccess }: DoctorU
       const upload = await pinata.upload.public.file(file).url(ipfsResponse.url).group(ipfsResponse.groupId);
       const cid = upload.cid;
 
-      setUploading(false);
       await sendTx("addRecord", [cid, patient.id, mimeType, ephemeralPublicKeyBase64, category, fileName, nonceBase64]);
-      //setDone(true);
-      notification.success(
-        <p className="text-xs text-muted-foreground">Record encrypted & uploaded to {patient.name}&apos;s vault</p>,
-      );
+      setUploading(false);
+      resetForm();
+      // notification.success(
+      //   <p className="text-xs text-muted-foreground">Record encrypted & uploaded to {patient.name}&apos;s vault</p>,
+      // );
       onSuccess();
     } catch (error) {
       setUploading(false);
-      //setDone(false);
+      resetForm();
+      onClose();
+
       console.log(error);
     }
   };
@@ -111,17 +115,12 @@ export function DoctorUploadModal({ open, onClose, patient, onSuccess }: DoctorU
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={v => {
-        if (!v) {
-          onClose();
-          resetForm();
-          setUploading(false);
-        }
-      }}
-    >
-      <DialogContent className="sm:max-w-md md:max-w-2xl">
+    <Dialog open={open} modal={false} onOpenChange={onClose}>
+      <DialogContent
+        className="sm:max-w-md md:max-w-2xl"
+        //onInteractOutside={e => e.preventDefault()}
+        onPointerDownOutside={e => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileUp className="w-5 h-5 text-primary" />
@@ -140,111 +139,108 @@ export function DoctorUploadModal({ open, onClose, patient, onSuccess }: DoctorU
           }}
         />
 
-        {
-          // done ? (
-          //   <motion.div
-          //     initial={{ scale: 0.9, opacity: 0 }}
-          //     animate={{ scale: 1, opacity: 1 }}
-          //     className="py-8 flex flex-col items-center gap-3"
-          //   >
-          //     <CheckCircle2 className="w-12 h-12 text-secondary" />
-          //     <p className="font-medium">Record uploaded & encrypted</p>
-          //     <p className="text-xs text-muted-foreground">Added to {patient.name}&apos;s vault</p>
-          //   </motion.div>
-          // ) :
-          uploading ? (
-            <div className="py-8 flex flex-col items-center gap-3">
-              <div className="relative">
-                <Lock className="w-8 h-8 text-primary" />
-                <div className="absolute inset-0 w-8 h-8 animate-pulse rounded-full bg-primary/20" />
-              </div>
-              <p className="text-sm font-medium">Encrypting & uploading...</p>
-              <div className="w-48 h-1.5 bg-muted rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-primary rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 1.8, ease: "easeInOut" }}
-                />
-              </div>
+        {done ? (
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="py-8 flex flex-col items-center gap-3"
+          >
+            <CheckCircle2 className="w-12 h-12 text-secondary" />
+            <p className="font-medium">Record uploaded & encrypted</p>
+            <p className="text-xs text-muted-foreground">Added to {patient.name}&apos;s vault</p>
+          </motion.div>
+        ) : uploading ? (
+          <div className="py-8 flex flex-col items-center gap-3">
+            <div className="relative">
+              <Lock className="w-8 h-8 text-primary" />
+              <div className="absolute inset-0 w-8 h-8 animate-pulse rounded-full bg-primary/20" />
             </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Record Name</Label>
-                <Input
-                  placeholder="e.g. Blood Panel Results"
-                  value={fileName}
-                  onChange={e => setFileName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Category</Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map(c => (
-                      <SelectItem key={c} value={c}>
-                        {c}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <p className="text-sm font-medium">Encrypting & uploading...</p>
+            <div className="w-48 h-1.5 bg-muted rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-primary rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: "100%" }}
+                transition={{ duration: 1.8, ease: "easeInOut" }}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Record Name</Label>
+              <Input
+                placeholder="e.g. Blood Panel Results"
+                value={fileName}
+                onChange={e => setFileName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map(c => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-              {/* File selection area */}
-              {!selectedFile ? (
-                <div
-                  className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/40 transition-colors"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <FileUp className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">Click to select file or drag & drop</p>
-                  <p className="text-xs text-muted-foreground mt-1">PDF, JPG, PNG, DICOM up to 50MB</p>
-                </div>
-              ) : (
-                <div className="border rounded-lg overflow-hidden">
-                  {/* File preview */}
-                  {filePreview && selectedFile.type.startsWith("image/") && (
-                    <div className="bg-muted/20 p-3 flex justify-center border-b">
-                      <img src={filePreview} alt="Preview" className="max-h-[200px] rounded-md object-contain" />
-                    </div>
-                  )}
-                  {filePreview && selectedFile.type === "application/pdf" && (
-                    <div className="bg-muted/20 border-b">
-                      <iframe src={filePreview} className="w-full h-[200px]" title="PDF Preview" />
-                    </div>
-                  )}
-                  {/* File info bar */}
-                  <div className="px-3 py-2.5 flex items-center justify-between bg-muted/10">
-                    <div className="flex items-center gap-2 min-w-0">
-                      {(() => {
-                        const Icon = getFileIcon(selectedFile.type);
-                        return <Icon className="w-4 h-4 text-muted-foreground shrink-0" />;
-                      })()}
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">{selectedFile.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {(selectedFile.size / 1024).toFixed(0)} KB · {selectedFile.type || "Unknown type"}
-                        </p>
-                      </div>
-                    </div>
-                    <Button variant="ghost" size="icon" className="shrink-0 h-7 w-7" onClick={removeFile}>
-                      <X className="w-3.5 h-3.5" />
-                    </Button>
+            {/* File selection area */}
+            {!selectedFile ? (
+              <div
+                className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/40 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <FileUp className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Click to select file or drag & drop</p>
+                <p className="text-xs text-muted-foreground mt-1">PDF, JPG, PNG, DICOM up to 50MB</p>
+              </div>
+            ) : (
+              <div className="border rounded-lg overflow-hidden">
+                {/* File preview */}
+                {filePreview && selectedFile.type.startsWith("image/") && (
+                  <div className="bg-muted/20 p-3 flex justify-center border-b">
+                    <img src={filePreview} alt="Preview" className="max-h-[200px] rounded-md object-contain" />
                   </div>
+                )}
+                {filePreview && selectedFile.type === "application/pdf" && (
+                  <div className="bg-muted/20 border-b">
+                    <iframe src={filePreview} className="w-full h-[200px]" title="PDF Preview" />
+                  </div>
+                )}
+                {/* File info bar */}
+                <div className="px-3 py-2.5 flex items-center justify-between bg-muted/10">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {(() => {
+                      const Icon = getFileIcon(selectedFile.type);
+                      return <Icon className="w-4 h-4 text-muted-foreground shrink-0" />;
+                    })()}
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{selectedFile.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {(selectedFile.size / 1024).toFixed(0)} KB · {selectedFile.type || "Unknown type"}
+                      </p>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" className="shrink-0 h-7 w-7" onClick={removeFile}>
+                    <X className="w-3.5 h-3.5" />
+                  </Button>
                 </div>
-              )}
+              </div>
+            )}
 
-              <Button className="w-full gap-2" disabled={!fileName.trim() || !category} onClick={handleUpload}>
-                <Lock className="w-4 h-4" />
-                Encrypt & Upload
-              </Button>
-            </div>
-          )
-        }
+            <Button className="w-full gap-2" disabled={!fileName.trim() || !category} onClick={handleUpload}>
+              <Lock className="w-4 h-4" />
+              Encrypt & Upload
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
