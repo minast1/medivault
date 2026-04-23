@@ -1,17 +1,15 @@
 import { useMemo } from "react";
 import { useAppKitAccount } from "@reown/appkit/react";
-import { useQuery } from "urql";
-import { CHECK_USER_QUERY } from "~~/graphql/queries/auth";
+import { useCheckUserQuery } from "~~/graphql/queries/auth";
 
 export const useUserStatus = () => {
   const { address, isConnected } = useAppKitAccount();
   const shouldPause = isConnected === false || address === undefined;
-  const [{ data, fetching, error }] = useQuery({
-    query: CHECK_USER_QUERY,
-    variables: { id: address?.toLowerCase() ?? "" },
-    requestPolicy: "cache-and-network",
-    pause: shouldPause,
-  });
+  const {
+    data,
+    isLoading: fetching,
+    error,
+  } = useCheckUserQuery({ id: address?.toLowerCase() ?? "" }, { enabled: !shouldPause });
 
   const isFirstTime = useMemo(() => {
     // If we haven't connected or are still fetching, we don't know yet

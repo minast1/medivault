@@ -1,6 +1,7 @@
 import { createConfig } from "ponder";
-import { parseAbi } from "viem";
+import { Abi, parseAbi } from "viem";
 import deployedContracts from "../nextjs/contracts/deployedContracts";
+import { EAS_ABI } from "../nextjs/contracts/easAbi";
 import scaffoldConfig from "../nextjs/scaffold.config";
 
 const targetNetwork = scaffoldConfig.targetNetworks[0];
@@ -22,7 +23,7 @@ const chains = {
 
 const contractNames = Object.keys(deployedContractsForNetwork);
 
-const contracts = Object.fromEntries(
+let contracts = Object.fromEntries(
   contractNames.map((contractName) => {
     return [
       contractName,
@@ -35,9 +36,16 @@ const contracts = Object.fromEntries(
     ];
   }),
 );
+contracts['EAS'] = {
 
+  chain: targetNetwork.name,
+  // Use 'const' assertion instead of 'as Abi' for better type inference
+  abi: EAS_ABI,
+  address: "0x4200000000000000000000000000000000000021",
+  startBlock: "latest",
+};
 
 export default createConfig({
   chains: chains,
-  contracts,
+  contracts
 });

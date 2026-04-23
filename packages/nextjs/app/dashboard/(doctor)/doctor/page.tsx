@@ -18,14 +18,13 @@ import {
   User,
 } from "lucide-react";
 import { NextPage } from "next";
-import { useQuery } from "urql";
 //import { useDebounce } from "use-debounce";
 import CardInput from "~~/components/CardInput";
 //import { DoctorRequestModal } from "~~/components/modals/doctor-request-modal";
 import { DoctorUploadModal } from "~~/components/modals/doctor-upload-modal";
 //import { RecordViewerModal } from "~~/components/modals/doctor-viewer-modal";
 import { Button } from "~~/components/ui/button";
-import { GET_ACCESS_REQUESTS_QUERY, GET_DOCTOR_QUERY, SEARCH_PATIENT_QUERY } from "~~/graphql/queries/doctor";
+import { useGetDoctorQuery, useGetDoctorRequestsQuery, useSearchPatientQuery } from "~~/graphql/queries/doctor";
 import { formatGhanaCard } from "~~/utils/format-card";
 import { generateCardFingerprint } from "~~/utils/generate-card-fingerprint";
 
@@ -36,6 +35,7 @@ type TRecord = {
 
   record: {
     description: string;
+    id: string;
     patient: {
       name: string;
     };
@@ -43,37 +43,30 @@ type TRecord = {
 };
 const DoctorDashboard: NextPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [shouldRefetch, setShouldRefetch] = useState(false);
+  //const [shouldRefetch, setShouldRefetch] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [done, setDone] = useState(false);
+
   //const [requestOpen, setRequestOpen] = useState(false);
 
   // const [, setViewingRequest] = useState<AccessRequest | null>(null);
   const { address, embeddedWalletInfo } = useAppKitAccount();
   const router = useRouter();
 
-  const [{ data: doctor }] = useQuery({
-    query: GET_DOCTOR_QUERY,
-    variables: {
-      id: address?.toLowerCase() ?? "",
-    },
-    pause: address === undefined,
-    requestPolicy: "cache-and-network",
-  });
+  const { data: doctor } = useGetDoctorQuery({ id: address?.toLowerCase() ?? "" }, { enabled: address !== undefined });
 
   //const shooou = debouncedId.startsWith("GHA-") && debouncedId.length >= 10;
-  const [{ data: patientData }, reexecuteQuery] = useQuery({
-    query: SEARCH_PATIENT_QUERY,
-    variables: { cardHash: generateCardFingerprint(searchQuery) },
-    pause: !shouldRefetch, //debouncedId.length < 10,
-    requestPolicy: "cache-only",
-  });
+  const {
+    data: patientData,
+    refetch: reexecuteQuery,
+    isLoading: isLoadingPatient,
+  } = useSearchPatientQuery({ cardHash: generateCardFingerprint(searchQuery) }, { enabled: false });
 
-  const [{ data: requestPermissions }] = useQuery({
-    query: GET_ACCESS_REQUESTS_QUERY,
-  });
-  console.log(requestPermissions);
+  const { data: requestPermissions } = useGetDoctorRequestsQuery(
+    { doctorAddr: address?.toLowerCase() ?? "" },
+    { enabled: address !== undefined, refetchInterval: 5000 },
+  );
   const foundPatient = patientData ? patientData.patients.items[0] : null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,10 +74,13 @@ const DoctorDashboard: NextPage = () => {
     setSearchQuery(formatted);
   };
 
-  const handleSuccess = () => {
-    setShouldRefetch(true);
+  const handleSuccess = async () => {
+    // setShouldRefetch(true);
+    await reexecuteQuery();
     setDone(true);
+    //setUploadOpen(false);
   };
+
   const requests: TRecord[] = requestPermissions ? requestPermissions.permissionRecords.items : null;
   const approvals = requests ? requests.filter(r => r.status === "granted") : [];
   const pending = requests ? requests.filter(r => r.status === "pending") : [];
@@ -114,9 +110,9 @@ const DoctorDashboard: NextPage = () => {
           />
           <Button
             onClick={() => {
-              setShouldRefetch(true);
+              // setShouldRefetch(true);
               setHasSearched(true);
-              reexecuteQuery({ requestPolicy: "network-only" });
+              reexecuteQuery();
             }}
             className="gap-1.5"
           >
@@ -125,7 +121,7 @@ const DoctorDashboard: NextPage = () => {
           </Button>
         </div>
 
-        {(!patientData || patientData?.patients.items.length == 0) && hasSearched && (
+        {(!patientData || patientData?.patients.items.length == 0) && hasSearched && !isLoadingPatient && (
           <motion.div
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
@@ -209,7 +205,7 @@ const DoctorDashboard: NextPage = () => {
             ) : (
               approvals?.map((r, i) => (
                 <motion.div
-                  key={r.id}
+                  key={r.record.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: i * 0.05 }}
@@ -291,7 +287,7 @@ const DoctorDashboard: NextPage = () => {
             done={done}
             onClose={() => {
               setDone(false);
-              reexecuteQuery({ requestPolicy: "network-only" });
+              reexecuteQuery();
               setUploadOpen(false);
             }}
             patient={foundPatient}
