@@ -6352,6 +6352,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@se-2/nextjs@workspace:packages/nextjs"
   dependencies:
+    "@ethereum-attestation-service/eas-sdk": ^2.9.0
     "@heroicons/react": ~2.1.5
     "@permissionless/wagmi": ^0.1.4
     "@ponder/client": ^0.16.6
@@ -6385,8 +6386,7 @@ __metadata:
     eslint-config-prettier: ~10.1.1
     eslint-plugin-prettier: ~5.2.4
     framer-motion: ^12.38.0
-    graphql: ^16.9.0
-    graphql-request: ^7.1.0
+    graphql-request: ^7.4.0
     graphql-ws: ^6.0.8
     lucide-react: ^0.577.0
     next: ~15.2.8
@@ -14397,7 +14397,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql-request@npm:^7.1.0":
+"graphql-request@npm:^7.4.0":
   version: 7.4.0
   resolution: "graphql-request@npm:7.4.0"
   dependencies:
@@ -14456,7 +14456,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql@npm:^16.0.0, graphql@npm:^16.10.0, graphql@npm:^16.12.0, graphql@npm:^16.9.0":
+"graphql@npm:^16.0.0, graphql@npm:^16.10.0, graphql@npm:^16.12.0":
   version: 16.13.1
   resolution: "graphql@npm:16.13.1"
   checksum: a70181daca60187d3d7dcdf3dc7d7408fa996b7bf15d5cf2528a9bd7b5ab6a1a412d7f4d4378e8e4e1bb2a1e638d0179f5669fbdf6a3e825b5ef182d10d9abec

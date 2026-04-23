@@ -85,7 +85,7 @@ export const permissionRecord = onchainTable(
     duration: t.integer(),
     status: permissionStatus("pending"),
     urgency: t.integer(),
-    attestationUid: t.text(),
+    patientId: t.hex().notNull(),
   }),
   // (table) => ({
   //   pk: primaryKey({ columns: [table.permissionId, table.recordId] }),

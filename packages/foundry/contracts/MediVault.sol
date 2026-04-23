@@ -23,7 +23,7 @@ contract MediVault {
     event RecordAdded(
         address indexed patient,
         address author,
-        string indexed ipfsCID,
+        string ipfsCID,
         string category,
         string description,
         string mimeType,

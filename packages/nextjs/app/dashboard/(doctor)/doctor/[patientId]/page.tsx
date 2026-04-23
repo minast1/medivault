@@ -16,7 +16,6 @@ import {
   Send,
   Zap,
 } from "lucide-react";
-import { useQuery } from "urql";
 import { useAccount } from "wagmi";
 import { Badge } from "~~/components/ui/badge";
 import { Button } from "~~/components/ui/button";
@@ -29,7 +28,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "~~/components/ui/popove
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~~/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~~/components/ui/table";
 import { Textarea } from "~~/components/ui/textarea";
-import { GET_PATIENT_RECORDS_QUERY } from "~~/graphql/queries/doctor";
+import { useGetPatientRecordsQuery } from "~~/graphql/queries/doctor";
 import { useDeployedContractInfo } from "~~/hooks/scaffold-eth";
 import useGasslessTxn from "~~/hooks/useGasslessTxn";
 import { URGENCY_MAP, categories, categoryColors } from "~~/lib/mockData";
@@ -57,12 +56,10 @@ export default function QueryPatientPage({ params }: { params: Promise<{ patient
 
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
-  const [{ data: patientData, fetching: patientFetching }] = useQuery({
-    query: GET_PATIENT_RECORDS_QUERY,
-    variables: { cardHash: patientId, limit: ITEMS_PER_PAGE, offset },
-    //requestPolicy: "cache-and-network",
-    pause: patientId === undefined,
-  });
+  const { data: patientData, isLoading: patientFetching } = useGetPatientRecordsQuery(
+    { cardHash: patientId, limit: ITEMS_PER_PAGE, offset },
+    { enabled: patientId !== undefined },
+  );
 
   const patient = !patientFetching ? patientData.patients.items[0] : undefined;
 

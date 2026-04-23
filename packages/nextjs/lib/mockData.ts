@@ -109,6 +109,10 @@ export interface ActivityItem {
   type: "share" | "upload" | "revoke" | "view";
 }
 
+export const getUrgencyLabel = (urgency: string | number) => {
+  return (Object.keys(URGENCY_MAP) as Array<keyof typeof URGENCY_MAP>).find(k => URGENCY_MAP[k] === Number(urgency));
+};
+
 // export const medicalRecords: MedicalRecord[] = [
 //   {
 //     id: "1",

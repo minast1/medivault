@@ -11,7 +11,7 @@ Scaffold-ETH 2 (SE-2) is a starter kit for building dApps on Ethereum. It comes 
 
 Both flavors share the same frontend package:
 
-- **packages/nextjs**: React frontend (Next.js App Router, not Pages Router, RainbowKit, Wagmi, Viem, TypeScript, Tailwind CSS with DaisyUI)
+- **packages/nextjs**: React frontend (Next.js App Router, not Pages Router, RainbowKit, Wagmi, Viem, TypeScript, Tailwind CSS with shadcn/ui)
 
 ### Detecting Which Flavor You're Using
 
@@ -64,10 +64,12 @@ yarn vercel:yolo --prod # for deployment of frontend
 - Config: `packages/hardhat/hardhat.config.ts`
 - Deploying specific contract:
   - If the deploy script has:
+
     ```typescript
     // In packages/hardhat/deploy/01_deploy_my_contract.ts
     deployMyContract.tags = ["MyContract"];
     ```
+
   - `yarn deploy --tags MyContract`
 
 #### Foundry Flavor

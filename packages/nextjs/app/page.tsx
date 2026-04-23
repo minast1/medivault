@@ -4,15 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppKitWallet } from "@reown/appkit-wallet-button/react";
 import { useAppKitAccount, useDisconnect } from "@reown/appkit/react";
-//import { useRouter } from "next/navigation";
-//import { useAppKitWallet } from "@reown/appkit-wallet-button/react";
 import { motion } from "framer-motion";
 import { ArrowRight, FileCheck, Lock, Shield } from "lucide-react";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
-//import IdentityOverlay from "~~/components/IdentityOverlay";
-//import IdentityOverlay from "~~/components/IdentityOverlay";
-//import IdentityOverlay from "~~/components/IdentityOverlay";
 import DetailsModal from "~~/components/modals/details-modal";
 import LoginModal from "~~/components/modals/login-modal";
 import { Button } from "~~/components/ui/button";
@@ -20,8 +15,6 @@ import { useDeployedContractInfo } from "~~/hooks/scaffold-eth";
 import useGasslessTxn from "~~/hooks/useGasslessTxn";
 import { useUserStatus } from "~~/hooks/useUserStatus";
 import { generateCardFingerprint } from "~~/utils/generate-card-fingerprint";
-
-//type AppView = "landing" | "patient" | "doctor";
 
 const features = [
   {
@@ -63,7 +56,7 @@ const Home: NextPage = () => {
     },
   });
 
-  //console.log({ isFirstTime });
+  console.log({ isFirstTime });
 
   const [loginOpen, setLoginOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);

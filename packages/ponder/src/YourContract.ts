@@ -8,6 +8,7 @@ import {
   record,
 } from "ponder:schema";
 import { recoverTypedDataAddress } from "viem";
+import { EAS_ABI } from '../../nextjs/contracts/easAbi';
 
 ponder.on("MediVault:DoctorRegistered", async ({ event, context }) => {
   const generateDID = (address: string, chainId: number) => {
@@ -63,7 +64,7 @@ ponder.on("MediVault:RecordAdded", async ({ event, context }) => {
   const isVerified = author.toLowerCase() !== patient.toLowerCase();
 
   await context.db.insert(record).values({
-    id: String(ipfsCID),
+    id: ipfsCID,
     patientId: patient,
     author: author,
     category,
@@ -98,19 +99,32 @@ ponder.on("MediVault:AccessRequested", async ({ event, context }) => {
       duration: Number(duration),
       status: "pending",
       urgency: Number(urgency),
+      patientId: patient
     });
   }
 });
 
 ponder.on("EAS:Attested", async ({ event, context }) => {
-  const schemaEncoder = new SchemaEncoder("bytes32 ipfsCID, address patient, address doctor, uint64 expiration");
-  const decodedData = schemaEncoder.decodeData(event.args.data);
+  const { uid } = event.args;
+
+  // The Attested event only emits (recipient, attester, uid, schemaUID).
+  // We must read the full attestation on-chain to get the encoded `data` bytes.
+  const attestation = await context.client.readContract({
+    address: "0x4200000000000000000000000000000000000021",
+    abi: EAS_ABI,
+    functionName: "getAttestation",
+    args: [uid],
+  });
+
+  const schemaEncoder = new SchemaEncoder(
+    "bytes32 ipfsCID, address patient, address doctor, uint64 expiration",
+  );
+  const decodedData = schemaEncoder.decodeData(attestation.data);
+
   const cid = decodedData.find((val) => val.name === "ipfsCID")?.value.value as string;
   const patient = decodedData.find((val) => val.name === "patient")?.value.value;
   const doctor = decodedData.find((val) => val.name === "doctor")?.value.value;
   const expiration = decodedData.find((val) => val.name === "expiration")?.value.value as bigint;
-  //const permisssionId = event.id;
-
 
   const item = await context.db.sql.query.permissionRecord.findFirst({
     where: (fields, { eq, and }) =>
@@ -126,5 +140,4 @@ ponder.on("EAS:Attested", async ({ event, context }) => {
       duration: Number(BigInt(Math.floor(Date.now() / 1000)) + expiration),
     });
   }
-
 });

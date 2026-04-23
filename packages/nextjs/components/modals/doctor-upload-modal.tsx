@@ -38,7 +38,7 @@ export function DoctorUploadModal({ open, onClose, patient, onSuccess, done }: D
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: vaultContract } = useDeployedContractInfo({ contractName: "MediVault" });
-  const { sendTx } = useGasslessTxn(vaultContract?.address, vaultContract?.abi, "doctor", "txn");
+  const { sendTx } = useGasslessTxn(vaultContract?.address, vaultContract?.abi, "doctor");
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
